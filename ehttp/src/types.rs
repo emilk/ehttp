@@ -47,6 +47,7 @@ impl Request {
 }
 
 /// Response from a completed HTTP request.
+#[derive(Clone, PartialEq)]
 pub struct Response {
     /// The URL we ended up at. This can differ from the request url when we have followed redirects.
     pub url: String,
@@ -58,7 +59,7 @@ pub struct Response {
     pub status_text: String,
     /// The raw bytes.
     pub bytes: Vec<u8>,
-
+    /// The returned headers. All header names are lower-case.
     pub headers: BTreeMap<String, String>,
 }
 
@@ -72,5 +73,20 @@ impl Response {
     }
 }
 
+impl std::fmt::Debug for Response {
+    fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        fmt.debug_struct("Response")
+            .field("url", &self.url)
+            .field("ok", &self.ok)
+            .field("status", &self.status)
+            .field("status_text", &self.status_text)
+            //    .field("bytes", &self.bytes)
+            .field("headers", &self.headers)
+            .finish_non_exhaustive()
+    }
+}
+
 /// Possible errors does NOT include e.g. 404, which is NOT considered an error.
 pub type Error = String;
+
+pub type Result<T> = std::result::Result<T, Error>;

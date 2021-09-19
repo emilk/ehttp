@@ -6,7 +6,7 @@ use crate::{Request, Response};
 ///
 /// NOTE: Ok(..) is returned on network error.
 /// Err is only for failure to use the fetch api.
-pub async fn fetch_async(request: &Request) -> Result<Response, String> {
+pub async fn fetch_async(request: &Request) -> crate::Result<Response> {
     fetch_jsvalue(request)
         .await
         .map_err(|err| err.as_string().unwrap_or(format!("{:#?}", err)))
@@ -48,12 +48,12 @@ async fn fetch_jsvalue(request: &Request) -> Result<Response, JsValue> {
 
     // https://developer.mozilla.org/en-US/docs/Web/API/Headers
     // "Note: When Header values are iterated over, [...] values from duplicate header names are combined."
-    let mut headers = std::collections::BTreeMap::<String, String>::new();
     let js_headers: web_sys::Headers = response.headers();
     let js_iter = js_sys::try_iter(&js_headers)
         .expect("headers try_iter")
         .expect("headers have an iterator");
 
+    let mut headers = std::collections::BTreeMap::new();
     for item in js_iter {
         let item = item.expect("headers iterator");
         let array: js_sys::Array = item.into();
@@ -94,7 +94,7 @@ where
 
 // ----------------------------------------------------------------------------
 
-pub(crate) fn fetch(request: Request, on_done: Box<dyn FnOnce(Result<Response, String>) + Send>) {
+pub(crate) fn fetch(request: Request, on_done: Box<dyn FnOnce(crate::Result<Response>) + Send>) {
     spawn_future(async move {
         let result = fetch_async(&request).await;
         on_done(result)

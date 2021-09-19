@@ -6,7 +6,7 @@ use crate::{Request, Response};
 ///
 /// NOTE: Ok(..) is returned on network error.
 /// Err is only for failure to use the fetch api.
-pub fn fetch_blocking(request: &Request) -> Result<Response, String> {
+pub fn fetch_blocking(request: &Request) -> crate::Result<Response> {
     let mut req = ureq::request(&request.method, &request.url);
 
     for header in &request.headers {
@@ -56,7 +56,7 @@ pub fn fetch_blocking(request: &Request) -> Result<Response, String> {
 
 // ----------------------------------------------------------------------------
 
-pub(crate) fn fetch(request: Request, on_done: Box<dyn FnOnce(Result<Response, String>) + Send>) {
+pub(crate) fn fetch(request: Request, on_done: Box<dyn FnOnce(crate::Result<Response>) + Send>) {
     std::thread::spawn(move || {
         let result = fetch_blocking(&request);
         on_done(result)

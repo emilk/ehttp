@@ -1,0 +1,14 @@
+[package]
+name = "example_eframe"
+version = "0.1.0"
+authors = ["Emil Ernerfeldt <emil.ernerfeldt@gmail.com>"]
+description = "Demo of ehttp for both web and native using eframe"
+edition = "2018"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+ehttp = { path = "../ehttp" }
+eframe = "0.14"

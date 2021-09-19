@@ -1,7 +1,7 @@
 //! Minimal HTTP client for both native and WASM.
 
 /// Performs a HTTP requests and calls the given callback when done.
-pub fn fetch(request: Request, on_done: impl 'static + Send + FnOnce(Result<Response, Error>)) {
+pub fn fetch(request: Request, on_done: impl 'static + Send + FnOnce(Result<Response>)) {
     #[cfg(not(target_arch = "wasm32"))]
     native::fetch(request, Box::new(on_done));
 
@@ -10,7 +10,7 @@ pub fn fetch(request: Request, on_done: impl 'static + Send + FnOnce(Result<Resp
 }
 
 mod types;
-pub use types::{Error, Request, Response};
+pub use types::{Error, Request, Response, Result};
 
 #[cfg(not(target_arch = "wasm32"))]
 mod native;
