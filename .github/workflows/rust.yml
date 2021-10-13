@@ -38,7 +38,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: check
-          args: --target wasm32-unknown-unknown --all-features
+          args: --lib --target wasm32-unknown-unknown --all-features
 
   test:
     name: cargo test
