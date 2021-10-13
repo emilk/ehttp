@@ -4,7 +4,7 @@ use crate::{Request, Response};
 
 /// Only available when compiling for native.
 ///
-/// NOTE: Ok(..) is returned on network error.
+/// NOTE: Ok(…) is returned on network error.
 /// Err is only for failure to use the fetch api.
 pub fn fetch_blocking(request: &Request) -> crate::Result<Response> {
     let mut req = ureq::request(&request.method, &request.url);

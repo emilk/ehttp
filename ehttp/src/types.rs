@@ -2,17 +2,29 @@ use std::collections::BTreeMap;
 
 /// A simple http request.
 pub struct Request {
-    /// "GET", …
+    /// "GET", "POST", …
     pub method: String,
     /// https://…
     pub url: String,
-    /// The raw bytes.
+    /// The data you send with e.g. "POST".
     pub body: Vec<u8>,
     /// ("Accept", "*/*"), …
     pub headers: BTreeMap<String, String>,
 }
 
 impl Request {
+    /// Helper for constructing [`Self::headers`].
+    /// ```
+    /// Request {
+    ///     method: "GET".to_owned(),
+    ///     url: "https://www.example.com",
+    ///     headers: Request::create_headers_map(&[
+    ///         ("Accept", "*/*"),
+    ///         ("Content-Type", "text/plain; charset=utf-8"),
+    ///     ]),
+    ///     ..Default::default(),
+    /// }
+    /// ```
     pub fn create_headers_map(headers: &[(&str, &str)]) -> BTreeMap<String, String> {
         headers
             .iter()
@@ -33,11 +45,11 @@ impl Request {
 
     /// Create a `POST` request with the given url and body.
     #[allow(clippy::needless_pass_by_value)]
-    pub fn post(url: impl ToString, body: impl ToString) -> Self {
+    pub fn post(url: impl ToString, body: Vec<u8>) -> Self {
         Self {
             method: "POST".to_owned(),
             url: url.to_string(),
-            body: body.to_string().into_bytes(),
+            body,
             headers: Request::create_headers_map(&[
                 ("Accept", "*/*"),
                 ("Content-Type", "text/plain; charset=utf-8"),
@@ -64,12 +76,12 @@ pub struct Response {
 }
 
 impl Response {
-    pub fn text(&self) -> Option<String> {
-        String::from_utf8(self.bytes.clone()).ok()
+    pub fn text(&self) -> Option<&str> {
+        std::str::from_utf8(&self.bytes).ok()
     }
 
-    pub fn content_type(&self) -> Option<String> {
-        self.headers.get("content-type").cloned()
+    pub fn content_type(&self) -> Option<&str> {
+        self.headers.get("content-type").map(|s| s.as_str())
     }
 }
 
@@ -86,7 +98,10 @@ impl std::fmt::Debug for Response {
     }
 }
 
-/// Possible errors does NOT include e.g. 404, which is NOT considered an error.
+/// A description of an error.
+///
+/// HTTP errors like 404 (file not found) are NOT considered errors.
 pub type Error = String;
 
+/// A type-alias for `Result<T, ehttp::Error>`.
 pub type Result<T> = std::result::Result<T, Error>;

@@ -4,7 +4,7 @@ use crate::{Request, Response};
 
 /// Only available when compiling for web.
 ///
-/// NOTE: Ok(..) is returned on network error.
+/// NOTE: Ok(…) is returned on network error.
 /// Err is only for failure to use the fetch api.
 pub async fn fetch_async(request: &Request) -> crate::Result<Response> {
     fetch_jsvalue(request)
@@ -12,7 +12,7 @@ pub async fn fetch_async(request: &Request) -> crate::Result<Response> {
         .map_err(|err| err.as_string().unwrap_or(format!("{:#?}", err)))
 }
 
-/// NOTE: Ok(..) is returned on network error.
+/// NOTE: Ok(…) is returned on network error.
 /// Err is only for failure to use the fetch api.
 async fn fetch_jsvalue(request: &Request) -> Result<Response, JsValue> {
     // https://rustwasm.github.io/wasm-bindgen/examples/fetch.html
@@ -47,7 +47,7 @@ async fn fetch_jsvalue(request: &Request) -> Result<Response, JsValue> {
     let bytes = uint8_array.to_vec();
 
     // https://developer.mozilla.org/en-US/docs/Web/API/Headers
-    // "Note: When Header values are iterated over, [...] values from duplicate header names are combined."
+    // "Note: When Header values are iterated over, […] values from duplicate header names are combined."
     let js_headers: web_sys::Headers = response.headers();
     let js_iter = js_sys::try_iter(&js_headers)
         .expect("headers try_iter")
