@@ -15,15 +15,14 @@ pub struct Request {
 impl Request {
     /// Helper for constructing [`Self::headers`].
     /// ```
-    /// Request {
-    ///     method: "GET".to_owned(),
-    ///     url: "https://www.example.com",
+    /// use ehttp::Request;
+    /// let request = Request {
     ///     headers: Request::create_headers_map(&[
     ///         ("Accept", "*/*"),
     ///         ("Content-Type", "text/plain; charset=utf-8"),
     ///     ]),
-    ///     ..Default::default(),
-    /// }
+    ///     ..Request::get("https://www.example.com")
+    /// };
     /// ```
     pub fn create_headers_map(headers: &[(&str, &str)]) -> BTreeMap<String, String> {
         headers

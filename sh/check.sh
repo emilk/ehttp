@@ -7,6 +7,7 @@ set -eux
 # Basically does what the CI does.
 
 cargo check --workspace --all-targets --all-features
+cargo test --workspace --doc
 cargo check --lib --target wasm32-unknown-unknown --all-features
 cargo clippy --workspace --all-targets --all-features --  -D warnings -W clippy::all
 cargo test --workspace --all-targets --all-features
