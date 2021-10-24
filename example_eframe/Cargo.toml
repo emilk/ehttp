@@ -11,4 +11,4 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 ehttp = { path = "../ehttp" }
-eframe = "0.14"
+eframe = "0.15"

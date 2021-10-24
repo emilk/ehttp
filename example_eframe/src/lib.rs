@@ -83,20 +83,26 @@ impl DemoApp {
     fn ui_url(&mut self, ui: &mut egui::Ui) -> bool {
         let mut trigger_fetch = self.ui_examples(ui);
 
-        egui::Grid::new("request_params")
+        egui::Grid::new("request_parameters")
             .spacing(egui::Vec2::splat(4.0))
+            .min_col_width(70.0)
+            .num_columns(2)
             .show(ui, |ui| {
                 ui.label("URL:");
+                trigger_fetch |= ui.text_edit_singleline(&mut self.url).lost_focus();
+                ui.end_row();
+
+                ui.label("Method:");
                 ui.horizontal(|ui| {
-                    trigger_fetch |= ui.text_edit_singleline(&mut self.url).lost_focus();
-                    ui.selectable_value(&mut self.method, Method::Get, "GET");
-                    ui.selectable_value(&mut self.method, Method::Post, "POST");
-                    trigger_fetch |= ui.button("fetch ▶").clicked();
+                    ui.selectable_value(&mut self.method, Method::Get, "GET")
+                        .clicked();
+                    ui.selectable_value(&mut self.method, Method::Post, "POST")
+                        .clicked();
                 });
                 ui.end_row();
 
                 if self.method == Method::Post {
-                    ui.label("Body:");
+                    ui.label("POST Body:");
                     ui.add(
                         egui::TextEdit::multiline(&mut self.request_body)
                             .code_editor()
@@ -105,6 +111,8 @@ impl DemoApp {
                     ui.end_row();
                 }
             });
+
+        trigger_fetch |= ui.button("fetch ▶").clicked();
 
         trigger_fetch
     }
@@ -166,7 +174,7 @@ fn response_ui(ui: &mut egui::Ui, response: &ehttp::Response) {
 
     ui.separator();
 
-    egui::ScrollArea::auto_sized().show(ui, |ui| {
+    egui::ScrollArea::vertical().show(ui, |ui| {
         egui::CollapsingHeader::new("Response headers")
             .default_open(false)
             .show(ui, |ui| {
@@ -192,11 +200,19 @@ fn response_ui(ui: &mut egui::Ui, response: &ehttp::Response) {
         }
 
         if let Some(text) = response.text() {
-            ui.monospace(text);
+            selectable_text(ui, text);
         } else {
             ui.monospace("[binary]");
         }
     });
+}
+
+fn selectable_text(ui: &mut egui::Ui, mut text: &str) {
+    ui.add(
+        egui::TextEdit::multiline(&mut text)
+            .desired_width(f32::INFINITY)
+            .text_style(egui::TextStyle::Monospace),
+    );
 }
 
 // ----------------------------------------------------------------------------
