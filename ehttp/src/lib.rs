@@ -21,3 +21,21 @@ pub use native::fetch_blocking;
 mod web;
 #[cfg(target_arch = "wasm32")]
 pub use web::{fetch_async, spawn_future};
+
+/// Helper for constructing [`Request::headers`].
+/// ```
+/// use ehttp::Request;
+/// let request = Request {
+///     headers: ehttp::headers(&[
+///         ("Accept", "*/*"),
+///         ("Content-Type", "text/plain; charset=utf-8"),
+///     ]),
+///     ..Request::get("https://www.example.com")
+/// };
+/// ```
+pub fn headers(headers: &[(&str, &str)]) -> std::collections::BTreeMap<String, String> {
+    headers
+        .iter()
+        .map(|e| (e.0.to_owned(), e.1.to_owned()))
+        .collect()
+}

@@ -13,24 +13,6 @@ pub struct Request {
 }
 
 impl Request {
-    /// Helper for constructing [`Self::headers`].
-    /// ```
-    /// use ehttp::Request;
-    /// let request = Request {
-    ///     headers: Request::create_headers_map(&[
-    ///         ("Accept", "*/*"),
-    ///         ("Content-Type", "text/plain; charset=utf-8"),
-    ///     ]),
-    ///     ..Request::get("https://www.example.com")
-    /// };
-    /// ```
-    pub fn create_headers_map(headers: &[(&str, &str)]) -> BTreeMap<String, String> {
-        headers
-            .iter()
-            .map(|e| (e.0.to_owned(), e.1.to_owned()))
-            .collect()
-    }
-
     /// Create a `GET` request with the given url.
     #[allow(clippy::needless_pass_by_value)]
     pub fn get(url: impl ToString) -> Self {
@@ -38,7 +20,7 @@ impl Request {
             method: "GET".to_owned(),
             url: url.to_string(),
             body: vec![],
-            headers: Request::create_headers_map(&[("Accept", "*/*")]),
+            headers: crate::headers(&[("Accept", "*/*")]),
         }
     }
 
@@ -49,7 +31,7 @@ impl Request {
             method: "POST".to_owned(),
             url: url.to_string(),
             body,
-            headers: Request::create_headers_map(&[
+            headers: crate::headers(&[
                 ("Accept", "*/*"),
                 ("Content-Type", "text/plain; charset=utf-8"),
             ]),
