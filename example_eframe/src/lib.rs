@@ -38,7 +38,7 @@ impl epi::App for DemoApp {
         "ehttp demo"
     }
 
-    fn update(&mut self, ctx: &egui::CtxRef, frame: &mut epi::Frame) {
+    fn update(&mut self, ctx: &egui::CtxRef, frame: &epi::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
             let trigger_fetch = self.ui_url(ui);
 
@@ -51,10 +51,10 @@ impl epi::App for DemoApp {
                 };
                 let download_store = self.download.clone();
                 *download_store.lock().unwrap() = Download::InProgress;
-                let repaint_signal = frame.repaint_signal();
+                let frame = frame.clone();
                 ehttp::fetch(request, move |response| {
                     *download_store.lock().unwrap() = Download::Done(response);
-                    repaint_signal.request_repaint();
+                    frame.request_repaint(); // Wake up UI thread
                 });
             }
 
