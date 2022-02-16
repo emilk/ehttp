@@ -10,3 +10,20 @@
 If you want to do HTTP requests and are targetting both native and web (WASM), then this is the crate for you!
 
 [You can try the web demo here](https://emilk.github.io/ehttp/index.html) (works in any browser with WASM and WebGL support). Uses [`egui_web`](https://github.com/emilk/egui/tree/master/egui_web).
+
+## Usage
+``` rust
+let request = ehttp::Request::get("https://www.example.com");
+ehttp::fetch(request, move |result: ehttp::Result<ehttp::Response>| {
+    println!("Status code: {:?}", result.unwrap().status);
+});
+```
+
+The given callback is called when the request is completed.
+You can communicate the results back to the main thread using something like:
+
+* Channels (e.g. [`std::sync::mpsc::channel`](https://doc.rust-lang.org/std/sync/mpsc/fn.channel.html)).
+* `Arc<Mutex<_>>`
+* [`poll_promise::Promise`](https://docs.rs/poll-promise)
+* [`eventuals::Eventual`](https://docs.rs/eventuals/latest/eventuals/struct.Eventual.html)
+* [`tokio::sync::watch::channel`](https://docs.rs/tokio/latest/tokio/sync/watch/fn.channel.html)
