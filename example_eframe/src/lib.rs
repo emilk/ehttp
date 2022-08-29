@@ -1,6 +1,6 @@
 use std::sync::{Arc, Mutex};
 
-use eframe::{egui, epi};
+use eframe::egui;
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
@@ -33,12 +33,8 @@ impl Default for DemoApp {
     }
 }
 
-impl epi::App for DemoApp {
-    fn name(&self) -> &str {
-        "ehttp demo"
-    }
-
-    fn update(&mut self, ctx: &egui::CtxRef, frame: &epi::Frame) {
+impl eframe::App for DemoApp {
+    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
             let trigger_fetch = self.ui_url(ui);
 
@@ -51,10 +47,10 @@ impl epi::App for DemoApp {
                 };
                 let download_store = self.download.clone();
                 *download_store.lock().unwrap() = Download::InProgress;
-                let frame = frame.clone();
+                let ctx = ctx.clone();
                 ehttp::fetch(request, move |response| {
                     *download_store.lock().unwrap() = Download::Done(response);
-                    frame.request_repaint(); // Wake up UI thread
+                    ctx.request_repaint(); // Wake up UI thread
                 });
             }
 
@@ -211,7 +207,7 @@ fn selectable_text(ui: &mut egui::Ui, mut text: &str) {
     ui.add(
         egui::TextEdit::multiline(&mut text)
             .desired_width(f32::INFINITY)
-            .text_style(egui::TextStyle::Monospace),
+            .font(egui::TextStyle::Monospace.resolve(ui.style())),
     );
 }
 

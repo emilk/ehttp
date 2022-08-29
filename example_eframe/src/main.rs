@@ -1,4 +1,7 @@
 fn main() {
-    let app = example_eframe::DemoApp::default();
-    eframe::run_native(Box::new(app), Default::default());
+    eframe::run_native(
+        "ehttp demo",
+        Default::default(),
+        Box::new(|_cc| Box::new(example_eframe::DemoApp::default())),
+    );
 }
