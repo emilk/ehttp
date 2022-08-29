@@ -1,6 +1,7 @@
 use std::collections::BTreeMap;
 
 /// A simple http request.
+#[derive(Clone, Debug)]
 pub struct Request {
     /// "GET", "POST", …
     pub method: String,
