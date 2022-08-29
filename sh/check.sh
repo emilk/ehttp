@@ -15,3 +15,5 @@ cargo fmt --all -- --check
 
 cargo doc --lib --no-deps --all-features
 cargo doc --target wasm32-unknown-unknown --lib --no-deps --all-features
+
+cargo deny check

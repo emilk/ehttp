@@ -3,6 +3,3 @@ members = [
     "ehttp",
     "example_eframe",
 ]
-
-# [patch.crates-io]
-# ureq = { path = "../forks/ureq" }

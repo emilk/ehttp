@@ -41,7 +41,7 @@ impl Request {
 }
 
 /// Response from a completed HTTP request.
-#[derive(Clone, PartialEq)]
+#[derive(Clone, Eq, PartialEq)]
 pub struct Response {
     /// The URL we ended up at. This can differ from the request url when we have followed redirects.
     pub url: String,
