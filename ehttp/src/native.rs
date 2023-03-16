@@ -57,8 +57,8 @@ pub fn fetch_blocking(request: &Request) -> crate::Result<Response> {
 // ----------------------------------------------------------------------------
 
 pub(crate) fn fetch(request: Request, on_done: Box<dyn FnOnce(crate::Result<Response>) + Send>) {
-    std::thread::spawn(move || {
-        let result = fetch_blocking(&request);
-        on_done(result)
-    });
+    std::thread::Builder::new()
+        .name("ehttp".to_owned())
+        .spawn(move || on_done(fetch_blocking(&request)))
+        .expect("Failed to spawn ehttp thread");
 }
