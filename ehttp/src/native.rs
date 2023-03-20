@@ -62,3 +62,15 @@ pub(crate) fn fetch(request: Request, on_done: Box<dyn FnOnce(crate::Result<Resp
         .spawn(move || on_done(fetch_blocking(&request)))
         .expect("Failed to spawn ehttp thread");
 }
+
+pub(crate) fn fetch_async(request: Request) -> crate::Result<Response> {
+    let (tx, rx): (Sender<Response>, Receiver<Response>) = mpsc::channel();
+
+    native::fetch(
+        request,
+        Box::new(move |received| {
+            tx.send(received);
+        }),
+    );
+    rx.recv().await?
+}

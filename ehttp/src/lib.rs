@@ -26,6 +26,15 @@ pub fn fetch(request: Request, on_done: impl 'static + Send + FnOnce(Result<Resp
     web::fetch(request, Box::new(on_done));
 }
 
+/// Performs a HTTP requests as async
+pub async fn fetch_async(request: Request) -> impl Result<Response> {
+    #[cfg(not(target_arch = "wasm32"))]
+    native::fetch_async(request);
+
+    #[cfg(target_arch = "wasm32")]
+    web::fetch_async(request);
+}
+
 mod types;
 pub use types::{Error, Request, Response, Result};
 
