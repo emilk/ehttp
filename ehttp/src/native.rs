@@ -1,5 +1,7 @@
 use std::collections::BTreeMap;
 
+use async_channel::{Receiver, Sender};
+
 use crate::{Request, Response};
 
 /// Only available when compiling for native.
@@ -63,14 +65,15 @@ pub(crate) fn fetch(request: Request, on_done: Box<dyn FnOnce(crate::Result<Resp
         .expect("Failed to spawn ehttp thread");
 }
 
-pub(crate) fn fetch_async(request: Request) -> crate::Result<Response> {
-    let (tx, rx): (Sender<Response>, Receiver<Response>) = mpsc::channel();
+pub(crate) async fn fetch_async(request: Request) -> crate::Result<Response> {
+    let (tx, rx): (
+        Sender<crate::Result<Response>>,
+        Receiver<crate::Result<Response>>,
+    ) = async_channel::bounded(1);
 
-    native::fetch(
+    fetch(
         request,
-        Box::new(move |received| {
-            tx.send(received);
-        }),
+        Box::new(move |received| tx.send_blocking(received).unwrap()),
     );
-    rx.recv().await?
+    rx.recv().await.map_err(|err| err.to_string())?
 }

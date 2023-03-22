@@ -27,12 +27,12 @@ pub fn fetch(request: Request, on_done: impl 'static + Send + FnOnce(Result<Resp
 }
 
 /// Performs a HTTP requests as async
-pub async fn fetch_async(request: Request) -> impl Result<Response> {
+pub async fn fetch_async(request: Request) -> Result<Response> {
     #[cfg(not(target_arch = "wasm32"))]
-    native::fetch_async(request);
+    return native::fetch_async(request).await;
 
     #[cfg(target_arch = "wasm32")]
-    web::fetch_async(request);
+    return web::fetch_async(&request).await;
 }
 
 mod types;
@@ -46,7 +46,7 @@ pub use native::fetch_blocking;
 #[cfg(target_arch = "wasm32")]
 mod web;
 #[cfg(target_arch = "wasm32")]
-pub use web::{fetch_async, spawn_future};
+pub use web::spawn_future;
 
 /// Helper for constructing [`Request::headers`].
 /// ```
