@@ -9,7 +9,7 @@
 
 If you want to do HTTP requests and are targetting both native and web (WASM), then this is the crate for you!
 
-[You can try the web demo here](https://emilk.github.io/ehttp/index.html) (works in any browser with WASM and WebGL support). Uses [`egui_web`](https://github.com/emilk/egui/tree/master/egui_web).
+[You can try the web demo here](https://emilk.github.io/ehttp/index.html) (works in any browser with WASM and WebGL support). Uses [`ureq`](https://docs.rs/ureq/latest/ureq/) and [`web_sys`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/).
 
 ## Usage
 ``` rust
