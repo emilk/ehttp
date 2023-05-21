@@ -4,19 +4,14 @@ version = "0.2.0"
 authors = ["Emil Ernerfeldt <emil.ernerfeldt@gmail.com>"]
 description = "Minimal HTTP client for both native and WASM"
 edition = "2018"
-rust-version = "1.61"
+rust-version = "1.65"
 homepage = "https://github.com/emilk/ehttp"
 license = "MIT OR Apache-2.0"
 readme = "../README.md"
 repository = "https://github.com/emilk/ehttp"
 categories = ["network-programming", "wasm", "web-programming"]
 keywords = ["http", "wasm", "native", "web"]
-include = [
-  "../LICENSE-APACHE",
-  "../LICENSE-MIT",
-  "**/*.rs",
-  "Cargo.toml",
-]
+include = ["../LICENSE-APACHE", "../LICENSE-MIT", "**/*.rs", "Cargo.toml"]
 
 [package.metadata.docs.rs]
 all-features = true
