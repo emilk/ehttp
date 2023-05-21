@@ -7,9 +7,11 @@ use crate::{Request, Response};
 /// NOTE: Ok(…) is returned on network error.
 /// Err is only for failure to use the fetch api.
 pub async fn fetch_async(request: &Request) -> crate::Result<Response> {
-    fetch_jsvalue(request)
-        .await
-        .map_err(|err| err.as_string().unwrap_or(format!("{:#?}", err)))
+    fetch_jsvalue(request).await.map_err(string_from_js_value)
+}
+
+fn string_from_js_value(value: JsValue) -> String {
+    value.as_string().unwrap_or_else(|| format!("{:#?}", value))
 }
 
 /// NOTE: Ok(…) is returned on network error.
