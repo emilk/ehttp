@@ -4,6 +4,7 @@ All notable changes to the `ehttp` crate will be documented in this file.
 
 
 ## Unreleased
+* Nicer formatted error messages on web.
 
 
 ## 0.2.0 - 2022-01-15

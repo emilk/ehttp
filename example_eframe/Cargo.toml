@@ -12,4 +12,5 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 ehttp = { path = "../ehttp" }
-eframe = "0.19"
+eframe = "0.21"
+wasm-bindgen-futures = "0.4"
