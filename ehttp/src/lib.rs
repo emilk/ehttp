@@ -17,7 +17,7 @@
 //! * [`eventuals::Eventual`](https://docs.rs/eventuals/latest/eventuals/struct.Eventual.html)
 //! * [`tokio::sync::watch::channel`](https://docs.rs/tokio/latest/tokio/sync/watch/fn.channel.html)
 
-/// Performs a HTTP requests and calls the given callback when done.
+/// Performs an HTTP request and calls the given callback when done.
 pub fn fetch(request: Request, on_done: impl 'static + Send + FnOnce(Result<Response>)) {
     #[cfg(not(target_arch = "wasm32"))]
     native::fetch(request, Box::new(on_done));
@@ -26,7 +26,12 @@ pub fn fetch(request: Request, on_done: impl 'static + Send + FnOnce(Result<Resp
     web::fetch(request, Box::new(on_done));
 }
 
-/// Performs a HTTP requests as async
+/// Performs an HTTP request as async
+///
+/// available on following platforms:
+/// - web
+/// - native behind the `native-async` feature.
+#[cfg(any(target_arch = "wasm32", feature = "native-async"))]
 pub async fn fetch_async(request: Request) -> Result<Response> {
     #[cfg(not(target_arch = "wasm32"))]
     return native::fetch_async(request).await;
