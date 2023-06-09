@@ -2,11 +2,11 @@ use futures_util::Stream;
 use futures_util::StreamExt;
 use wasm_bindgen::prelude::*;
 
-use super::types::Response;
 use crate::web::{fetch_base, get_response_base, spawn_future, string_from_js_value};
 use crate::Request;
 
 use super::types::Part;
+use super::Control;
 
 /// Only available when compiling for web.
 ///
@@ -36,7 +36,7 @@ async fn fetch_jsvalue_stream(
     // returns a `Part::Response` followed by all the chunks in `body` as `Part::Chunk`
     Ok(
         futures_util::stream::once(futures_util::future::ready(Ok(Part::Response(
-            Response::from(get_response_base(&response)?),
+            get_response_base(&response)?,
         ))))
         .chain(
             body.into_stream()
@@ -45,20 +45,29 @@ async fn fetch_jsvalue_stream(
     )
 }
 
-pub(crate) fn fetch_streaming(request: Request, on_data: Box<dyn Fn(crate::Result<Part>) + Send>) {
+pub(crate) fn fetch_streaming(
+    request: Request,
+    on_data: Box<dyn Fn(crate::Result<Part>) -> Control + Send>,
+) {
     spawn_future(async move {
         let mut stream = match fetch_jsvalue_stream(&request).await {
             Ok(stream) => stream,
             Err(e) => {
-                return on_data(Err(string_from_js_value(e)));
+                on_data(Err(string_from_js_value(e)));
+                return;
             }
         };
 
         while let Some(chunk) = stream.next().await {
             match chunk {
-                Ok(chunk) => on_data(Ok(chunk)),
+                Ok(chunk) => {
+                    if on_data(Ok(chunk)).is_break() {
+                        return;
+                    }
+                }
                 Err(e) => {
-                    return on_data(Err(string_from_js_value(e)));
+                    on_data(Err(string_from_js_value(e)));
+                    return;
                 }
             }
         }

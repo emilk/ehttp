@@ -2,12 +2,13 @@ use std::collections::BTreeMap;
 
 use crate::Request;
 
+use super::Control;
 use super::Part;
-use super::Response;
+use crate::types::PartialResponse;
 
 pub fn fetch_streaming_blocking(
     request: Request,
-    on_data: Box<dyn Fn(crate::Result<Part>) + Send>,
+    on_data: Box<dyn Fn(crate::Result<Part>) -> Control + Send>,
 ) {
     let mut req = ureq::request(&request.method, &request.url);
 
@@ -24,7 +25,10 @@ pub fn fetch_streaming_blocking(
     let (ok, resp) = match resp {
         Ok(resp) => (true, resp),
         Err(ureq::Error::Status(_, resp)) => (false, resp), // Still read the body on e.g. 404
-        Err(ureq::Error::Transport(error)) => return on_data(Err(error.to_string())),
+        Err(ureq::Error::Transport(error)) => {
+            on_data(Err(error.to_string()));
+            return;
+        }
     };
 
     let url = resp.get_url().to_owned();
@@ -38,13 +42,16 @@ pub fn fetch_streaming_blocking(
         }
     }
 
-    on_data(Ok(Part::Response(Response {
+    let response = PartialResponse {
         url,
         ok,
         status,
         status_text,
         headers,
-    })));
+    };
+    if on_data(Ok(Part::Response(response))).is_break() {
+        return;
+    };
 
     let mut reader = resp.into_reader();
     loop {
@@ -54,19 +61,26 @@ pub fn fetch_streaming_blocking(
                 // clone data from buffer and clear it
                 let chunk = buf[..n].to_vec();
                 buf.fill(0);
-                on_data(Ok(Part::Chunk(chunk)));
+                if on_data(Ok(Part::Chunk(chunk))).is_break() {
+                    return;
+                };
             }
             Ok(_) => {
-                break on_data(Ok(Part::Chunk(vec![])));
+                on_data(Ok(Part::Chunk(vec![])));
+                break;
             }
             Err(error) => {
-                return on_data(Err(error.to_string()));
+                on_data(Err(error.to_string()));
+                return;
             }
         };
     }
 }
 
-pub(crate) fn fetch_streaming(request: Request, on_data: Box<dyn Fn(crate::Result<Part>) + Send>) {
+pub(crate) fn fetch_streaming(
+    request: Request,
+    on_data: Box<dyn Fn(crate::Result<Part>) -> Control + Send>,
+) {
     std::thread::Builder::new()
         .name("ehttp".to_owned())
         .spawn(move || fetch_streaming_blocking(request, on_data))

@@ -1,8 +1,7 @@
-use std::collections::BTreeMap;
-
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
 
+use crate::types::PartialResponse;
 use crate::{Request, Response};
 
 /// Only available when compiling for web.
@@ -42,15 +41,7 @@ pub(crate) async fn fetch_base(request: &Request) -> Result<web_sys::Response, J
     Ok(response)
 }
 
-pub(crate) struct ResponseBase {
-    pub url: String,
-    pub ok: bool,
-    pub status: u16,
-    pub status_text: String,
-    pub headers: BTreeMap<String, String>,
-}
-
-pub(crate) fn get_response_base(response: &web_sys::Response) -> Result<ResponseBase, JsValue> {
+pub(crate) fn get_response_base(response: &web_sys::Response) -> Result<PartialResponse, JsValue> {
     // https://developer.mozilla.org/en-US/docs/Web/API/Headers
     // "Note: When Header values are iterated over, […] values from duplicate header names are combined."
     let js_headers: web_sys::Headers = response.headers();
@@ -76,7 +67,7 @@ pub(crate) fn get_response_base(response: &web_sys::Response) -> Result<Response
         headers.insert(key, value);
     }
 
-    Ok(ResponseBase {
+    Ok(PartialResponse {
         url: response.url(),
         ok: response.ok(),
         status: response.status(),
