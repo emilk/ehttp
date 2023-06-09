@@ -56,6 +56,9 @@ mod web;
 #[cfg(target_arch = "wasm32")]
 pub use web::spawn_future;
 
+#[cfg(feature = "streaming")]
+pub mod streaming;
+
 /// Helper for constructing [`Request::headers`].
 /// ```
 /// use ehttp::Request;
