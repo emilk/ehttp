@@ -26,9 +26,12 @@ pub fn fetch(request: Request, on_done: impl 'static + Send + FnOnce(Result<Resp
     web::fetch(request, Box::new(on_done));
 }
 
-/// Performs an HTTP request as async
+/// Performs an `async` HTTP request.
 ///
-/// available on following platforms:
+/// Returns `Err` if we fail to make a request.
+/// Returns `Ok` if we get a response, even if it's a 404.
+///
+/// Available on following platforms:
 /// - web
 /// - native behind the `native-async` feature.
 #[cfg(any(target_arch = "wasm32", feature = "native-async"))]
