@@ -20,7 +20,6 @@ async fn fetch_jsvalue(request: &Request) -> Result<Response, JsValue> {
     // https://rustwasm.github.io/wasm-bindgen/examples/fetch.html
     // https://github.com/seanmonstar/reqwest/blob/master/src/wasm/client.rs
 
-    use wasm_bindgen::JsCast;
     use wasm_bindgen_futures::JsFuture;
 
     let mut opts = web_sys::RequestInit::new();

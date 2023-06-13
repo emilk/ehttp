@@ -12,5 +12,13 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 ehttp = { path = "../ehttp" }
-eframe = "0.21"
+eframe = "0.22"
+log = "0.4"
+
+# native:
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+env_logger = "0.10"
+
+# web:
+[target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen-futures = "0.4"
