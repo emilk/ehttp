@@ -17,13 +17,27 @@
 //! * [`eventuals::Eventual`](https://docs.rs/eventuals/latest/eventuals/struct.Eventual.html)
 //! * [`tokio::sync::watch::channel`](https://docs.rs/tokio/latest/tokio/sync/watch/fn.channel.html)
 
-/// Performs a HTTP requests and calls the given callback when done.
+/// Performs an HTTP request and calls the given callback when done.
 pub fn fetch(request: Request, on_done: impl 'static + Send + FnOnce(Result<Response>)) {
     #[cfg(not(target_arch = "wasm32"))]
     native::fetch(request, Box::new(on_done));
 
     #[cfg(target_arch = "wasm32")]
     web::fetch(request, Box::new(on_done));
+}
+
+/// Performs an HTTP request as async
+///
+/// available on following platforms:
+/// - web
+/// - native behind the `native-async` feature.
+#[cfg(any(target_arch = "wasm32", feature = "native-async"))]
+pub async fn fetch_async(request: Request) -> Result<Response> {
+    #[cfg(not(target_arch = "wasm32"))]
+    return native::fetch_async(request).await;
+
+    #[cfg(target_arch = "wasm32")]
+    return web::fetch_async(&request).await;
 }
 
 mod types;
@@ -37,7 +51,7 @@ pub use native::fetch_blocking;
 #[cfg(target_arch = "wasm32")]
 mod web;
 #[cfg(target_arch = "wasm32")]
-pub use web::{fetch_async, spawn_future};
+pub use web::spawn_future;
 
 /// Helper for constructing [`Request::headers`].
 /// ```

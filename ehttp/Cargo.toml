@@ -16,6 +16,11 @@ include = ["../LICENSE-APACHE", "../LICENSE-MIT", "**/*.rs", "Cargo.toml"]
 [package.metadata.docs.rs]
 all-features = true
 
+[features]
+"default" = []
+# To support fetch_async on native
+"native-async" = ["async-channel"]
+
 [lib]
 
 [dependencies]
@@ -24,6 +29,7 @@ all-features = true
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 # ureq = { version = "2.0", default-features = false, features = ["gzip", "tls_native_certs"] }
 ureq = "2.0"
+async-channel = { version = "1.8", optional = true }
 
 # For compiling to web:
 [target.'cfg(target_arch = "wasm32")'.dependencies]

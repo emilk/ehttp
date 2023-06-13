@@ -2,6 +2,9 @@ use std::collections::BTreeMap;
 
 use crate::{Request, Response};
 
+#[cfg(feature = "native-async")]
+use async_channel::{Receiver, Sender};
+
 /// Only available when compiling for native.
 ///
 /// NOTE: Ok(…) is returned on network error.
@@ -61,4 +64,18 @@ pub(crate) fn fetch(request: Request, on_done: Box<dyn FnOnce(crate::Result<Resp
         .name("ehttp".to_owned())
         .spawn(move || on_done(fetch_blocking(&request)))
         .expect("Failed to spawn ehttp thread");
+}
+
+#[cfg(feature = "native-async")]
+pub(crate) async fn fetch_async(request: Request) -> crate::Result<Response> {
+    let (tx, rx): (
+        Sender<crate::Result<Response>>,
+        Receiver<crate::Result<Response>>,
+    ) = async_channel::bounded(1);
+
+    fetch(
+        request,
+        Box::new(move |received| tx.send_blocking(received).unwrap()),
+    );
+    rx.recv().await.map_err(|err| err.to_string())?
 }
