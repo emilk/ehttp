@@ -19,12 +19,11 @@ ignore = [
 multiple-versions = "deny"
 wildcards = "allow" # at least until https://github.com/EmbarkStudios/cargo-deny/issues/241 is fixed
 deny = [
-    { name = "openssl" },           # prefer rustls
-    { name = "openssl-sys" },       # prefer rustls
+    { name = "openssl" },     # prefer rustls
+    { name = "openssl-sys" }, # prefer rustls
 ]
 
-skip = [
-]
+skip = []
 skip-tree = [
     { name = "eframe" }, # dev-dependency
 ]
@@ -43,8 +42,10 @@ allow = [
     "BSL-1.0",                        # https://tldrlegal.com/license/boost-software-license-1.0-explained
     "CC0-1.0",                        # https://creativecommons.org/publicdomain/zero/1.0/
     "ISC",                            # https://tldrlegal.com/license/-isc-license
+    "LicenseRef-UFL-1.0",             # https://tldrlegal.com/license/ubuntu-font-license,-1.0 - no official SPDX, see https://github.com/emilk/egui/issues/2321
     "MIT",                            # https://tldrlegal.com/license/mit-license
     "MPL-2.0",                        # https://www.mozilla.org/en-US/MPL/2.0/FAQ/ - see Q11
+    "OFL-1.1",                        # https://spdx.org/licenses/OFL-1.1.html
     "OpenSSL",                        # https://www.openssl.org/source/license.html
     "Unicode-DFS-2016",               # https://spdx.org/licenses/Unicode-DFS-2016.html
     "Zlib",                           # https://tldrlegal.com/license/zlib-libpng-license-(zlib)
@@ -53,13 +54,9 @@ allow = [
 [[licenses.clarify]]
 name = "webpki"
 expression = "ISC"
-license-files = [
-    { path = "LICENSE", hash = 0x001c7e6c }
-]
+license-files = [{ path = "LICENSE", hash = 0x001c7e6c }]
 
 [[licenses.clarify]]
 name = "ring"
 expression = "MIT AND ISC AND OpenSSL"
-license-files = [
-    { path = "LICENSE", hash = 0xbd0eed23 }
-]
+license-files = [{ path = "LICENSE", hash = 0xbd0eed23 }]
