@@ -88,7 +88,7 @@ impl std::fmt::Debug for Response {
     }
 }
 
-/// An HTTP response status line and headers
+/// An HTTP response status line and headers used for the [`streaming`](crate::streaming) API.
 pub struct PartialResponse {
     /// The URL we ended up at. This can differ from the request url when we have followed redirects.
     pub url: String,
