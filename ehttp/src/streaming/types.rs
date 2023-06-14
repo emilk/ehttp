@@ -11,18 +11,3 @@ pub enum Part {
     /// If the chunk is empty, that means the `on_data` callback will not receive any more data.
     Chunk(Vec<u8>),
 }
-
-pub enum Control {
-    Continue,
-    Break,
-}
-
-impl Control {
-    pub fn is_break(&self) -> bool {
-        matches!(self, Self::Break)
-    }
-
-    pub fn is_continue(&self) -> bool {
-        matches!(self, Self::Continue)
-    }
-}

@@ -1,14 +1,14 @@
 use std::collections::BTreeMap;
+use std::ops::ControlFlow;
 
 use crate::Request;
 
-use super::Control;
 use super::Part;
 use crate::types::PartialResponse;
 
 pub fn fetch_streaming_blocking(
     request: Request,
-    on_data: Box<dyn Fn(crate::Result<Part>) -> Control + Send>,
+    on_data: Box<dyn Fn(crate::Result<Part>) -> ControlFlow<()> + Send>,
 ) {
     let mut req = ureq::request(&request.method, &request.url);
 
@@ -79,7 +79,7 @@ pub fn fetch_streaming_blocking(
 
 pub(crate) fn fetch_streaming(
     request: Request,
-    on_data: Box<dyn Fn(crate::Result<Part>) -> Control + Send>,
+    on_data: Box<dyn Fn(crate::Result<Part>) -> ControlFlow<()> + Send>,
 ) {
     std::thread::Builder::new()
         .name("ehttp".to_owned())
