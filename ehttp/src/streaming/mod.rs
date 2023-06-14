@@ -1,3 +1,44 @@
+//! Streaming HTTP client for both native and WASM.
+//!
+//! Example:
+//! ```
+//! let url = "https://www.example.com";
+//! let request = ehttp::Request::get(url);
+//! ehttp::streaming::fetch(request, move |result: ehttp::Result<ehttp::streaming::Part>| {
+//!     let part = match result {
+//!         Ok(part) => part,
+//!         Err(err) => {
+//!             eprintln!("an error occurred while streaming `{url}`: {err}");
+//!             return std::ops::ControlFlow::Break(());
+//!         }
+//!     }
+//!
+//!     match part {
+//!         ehttp::streaming::Part::Response(response) => {
+//!             println!("Status code: {:?}", response.status);
+//!             if !response.ok {
+//!                 std::ops::ControlFlow::Break(())
+//!             } else {
+//!                 std::ops::ControlFlow::Continue(())
+//!             }
+//!         }
+//!         ehttp::streaming::Part::Chunk(chunk) => {
+//!             match your_chunk_handler(chunk) {
+//!                 Ok(()) => std::ops::ControlFlow::Continue(()),
+//!                 Err(err) => {
+//!                     eprintln!("an error occurred while streaming `{url}`: {err}");
+//!                     std::ops::ControlFlow::Break(())
+//!                 }
+//!             }
+//!         }
+//!     }
+//! });
+//! ```
+//!
+//! The streaming fetch works like the non-streaming fetch, but instead
+//! of receiving the response in full, you receive parts of the response
+//! as they are streamed in.
+
 use std::ops::ControlFlow;
 
 use crate::Request;
