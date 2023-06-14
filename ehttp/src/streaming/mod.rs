@@ -4,6 +4,8 @@ use crate::Request;
 
 /// Performs a HTTP requests and calls the given callback once for the initial response,
 /// and then once for each chunk in the response body.
+///
+/// You can abort the fetch by returning [`ControlFlow::Break`] from the callback.
 pub fn fetch(
     request: Request,
     on_data: impl 'static + Send + Fn(crate::Result<types::Part>) -> ControlFlow<()>,
