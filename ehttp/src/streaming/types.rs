@@ -1,5 +1,6 @@
 use crate::types::PartialResponse;
 
+/// A piece streamed by [`crate::streaming::fetch`].
 pub enum Part {
     /// The header of the response.
     ///
