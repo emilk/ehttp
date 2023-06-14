@@ -49,12 +49,12 @@ futures-util = { version = "0.3", optional = true }
 [dependencies.web-sys]
 version = "0.3.52"
 features = [
+  "AbortSignal",
   "Headers",
+  "ReadableStream",
   "Request",
   "RequestInit",
   "RequestMode",
   "Response",
-  "AbortSignal",
-  "ReadableStream",
   "Window",
 ]
