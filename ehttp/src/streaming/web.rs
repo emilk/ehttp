@@ -1,3 +1,5 @@
+use std::ops::ControlFlow;
+
 use futures_util::Stream;
 use futures_util::StreamExt;
 use wasm_bindgen::prelude::*;
@@ -6,7 +8,6 @@ use crate::web::{fetch_base, get_response_base, spawn_future, string_from_js_val
 use crate::Request;
 
 use super::types::Part;
-use super::Control;
 
 /// Only available when compiling for web.
 ///
@@ -47,7 +48,7 @@ async fn fetch_jsvalue_stream(
 
 pub(crate) fn fetch_streaming(
     request: Request,
-    on_data: Box<dyn Fn(crate::Result<Part>) -> Control + Send>,
+    on_data: Box<dyn Fn(crate::Result<Part>) -> ControlFlow<()> + Send>,
 ) {
     spawn_future(async move {
         let mut stream = match fetch_jsvalue_stream(&request).await {
