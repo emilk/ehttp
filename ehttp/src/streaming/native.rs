@@ -60,7 +60,6 @@ pub fn fetch_streaming_blocking(
             Ok(n) if n > 0 => {
                 // clone data from buffer and clear it
                 let chunk = buf[..n].to_vec();
-                buf.fill(0);
                 if on_data(Ok(Part::Chunk(chunk))).is_break() {
                     return;
                 };
