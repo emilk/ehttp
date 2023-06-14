@@ -13,13 +13,11 @@ categories = ["network-programming", "wasm", "web-programming"]
 keywords = ["http", "wasm", "native", "web"]
 include = ["../LICENSE-APACHE", "../LICENSE-MIT", "**/*.rs", "Cargo.toml"]
 
-[features]
-streaming = ["dep:wasm-streams", "dep:futures-util"]
-
 [package.metadata.docs.rs]
 all-features = true
 
 [features]
+streaming = ["dep:wasm-streams", "dep:futures-util"]
 "default" = []
 # To support fetch_async on native
 "native-async" = ["async-channel"]
