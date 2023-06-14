@@ -17,10 +17,13 @@ include = ["../LICENSE-APACHE", "../LICENSE-MIT", "**/*.rs", "Cargo.toml"]
 all-features = true
 
 [features]
-streaming = ["dep:wasm-streams", "dep:futures-util"]
 "default" = []
+
 # To support fetch_async on native
 "native-async" = ["async-channel"]
+
+# To support streaming fetch
+streaming = ["dep:wasm-streams", "dep:futures-util"]
 
 [lib]
 
