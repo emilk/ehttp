@@ -1,4 +1,6 @@
 //! Streaming HTTP client for both native and WASM.
+//! 
+//! Requires the `streaming` feature to be enabled.
 //!
 //! Example:
 //! ```
