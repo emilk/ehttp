@@ -166,7 +166,7 @@ impl DemoApp {
                 });
                 ui.end_row();
 
-                ui.checkbox(&mut self.streaming, "Use streaming fetch").on_hover_text("The ehttp::streaming API allows you to process the data piece by peice as it is received.");
+                ui.checkbox(&mut self.streaming, "Use streaming fetch").on_hover_text("The ehttp::streaming API allows you to process the data piece by piece as it is received.");
 
                 if self.method == Method::Post {
                     ui.label("POST Body:");
