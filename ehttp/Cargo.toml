@@ -18,8 +18,12 @@ all-features = true
 
 [features]
 "default" = []
+
 # To support fetch_async on native
 "native-async" = ["async-channel"]
+
+# To support streaming fetch
+streaming = ["dep:wasm-streams", "dep:futures-util"]
 
 [lib]
 
@@ -37,10 +41,17 @@ js-sys = "0.3"
 wasm-bindgen = "0.2.86"
 wasm-bindgen-futures = "0.4"
 
+# Streaming response
+wasm-streams = { version = "0.3", optional = true }
+futures-util = { version = "0.3", optional = true }
+
+
 [dependencies.web-sys]
 version = "0.3.52"
 features = [
+  "AbortSignal",
   "Headers",
+  "ReadableStream",
   "Request",
   "RequestInit",
   "RequestMode",

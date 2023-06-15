@@ -1,5 +1,7 @@
 use wasm_bindgen::prelude::*;
+use wasm_bindgen_futures::JsFuture;
 
+use crate::types::PartialResponse;
 use crate::{Request, Response};
 
 /// Only available when compiling for web.
@@ -10,18 +12,11 @@ pub async fn fetch_async(request: &Request) -> crate::Result<Response> {
     fetch_jsvalue(request).await.map_err(string_from_js_value)
 }
 
-fn string_from_js_value(value: JsValue) -> String {
+pub(crate) fn string_from_js_value(value: JsValue) -> String {
     value.as_string().unwrap_or_else(|| format!("{:#?}", value))
 }
 
-/// NOTE: Ok(…) is returned on network error.
-/// Err is only for failure to use the fetch api.
-async fn fetch_jsvalue(request: &Request) -> Result<Response, JsValue> {
-    // https://rustwasm.github.io/wasm-bindgen/examples/fetch.html
-    // https://github.com/seanmonstar/reqwest/blob/master/src/wasm/client.rs
-
-    use wasm_bindgen_futures::JsFuture;
-
+pub(crate) async fn fetch_base(request: &Request) -> Result<web_sys::Response, JsValue> {
     let mut opts = web_sys::RequestInit::new();
     opts.method(&request.method);
     opts.mode(web_sys::RequestMode::Cors);
@@ -43,10 +38,10 @@ async fn fetch_jsvalue(request: &Request) -> Result<Response, JsValue> {
     let response = JsFuture::from(window.fetch_with_request(&js_request)).await?;
     let response: web_sys::Response = response.dyn_into()?;
 
-    let array_buffer = JsFuture::from(response.array_buffer()?).await?;
-    let uint8_array = js_sys::Uint8Array::new(&array_buffer);
-    let bytes = uint8_array.to_vec();
+    Ok(response)
+}
 
+pub(crate) fn get_response_base(response: &web_sys::Response) -> Result<PartialResponse, JsValue> {
     // https://developer.mozilla.org/en-US/docs/Web/API/Headers
     // "Note: When Header values are iterated over, […] values from duplicate header names are combined."
     let js_headers: web_sys::Headers = response.headers();
@@ -72,13 +67,33 @@ async fn fetch_jsvalue(request: &Request) -> Result<Response, JsValue> {
         headers.insert(key, value);
     }
 
-    Ok(Response {
+    Ok(PartialResponse {
         url: response.url(),
         ok: response.ok(),
         status: response.status(),
         status_text: response.status_text(),
-        bytes,
         headers,
+    })
+}
+
+/// NOTE: Ok(…) is returned on network error.
+/// Err is only for failure to use the fetch api.
+async fn fetch_jsvalue(request: &Request) -> Result<Response, JsValue> {
+    let response = fetch_base(request).await?;
+
+    let array_buffer = JsFuture::from(response.array_buffer()?).await?;
+    let uint8_array = js_sys::Uint8Array::new(&array_buffer);
+    let bytes = uint8_array.to_vec();
+
+    let base = get_response_base(&response)?;
+
+    Ok(Response {
+        url: base.url,
+        ok: base.ok,
+        status: base.status,
+        status_text: base.status_text,
+        bytes,
+        headers: base.headers,
     })
 }
 

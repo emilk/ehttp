@@ -44,7 +44,7 @@ pub async fn fetch_async(request: Request) -> Result<Response> {
 }
 
 mod types;
-pub use types::{Error, Request, Response, Result};
+pub use types::{Error, PartialResponse, Request, Response, Result};
 
 #[cfg(not(target_arch = "wasm32"))]
 mod native;
@@ -55,6 +55,9 @@ pub use native::fetch_blocking;
 mod web;
 #[cfg(target_arch = "wasm32")]
 pub use web::spawn_future;
+
+#[cfg(feature = "streaming")]
+pub mod streaming;
 
 /// Helper for constructing [`Request::headers`].
 /// ```
