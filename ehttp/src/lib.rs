@@ -16,6 +16,10 @@
 //! * [`poll_promise::Promise`](https://docs.rs/poll-promise)
 //! * [`eventuals::Eventual`](https://docs.rs/eventuals/latest/eventuals/struct.Eventual.html)
 //! * [`tokio::sync::watch::channel`](https://docs.rs/tokio/latest/tokio/sync/watch/fn.channel.html)
+//!
+//! ## Feature flags
+#![doc = document_features::document_features!()]
+//!
 
 /// Performs an HTTP request and calls the given callback when done.
 pub fn fetch(request: Request, on_done: impl 'static + Send + FnOnce(Result<Response>)) {

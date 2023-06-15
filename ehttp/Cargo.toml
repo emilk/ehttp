@@ -19,15 +19,16 @@ all-features = true
 [features]
 "default" = []
 
-# To support fetch_async on native
+## Support `fetch_async` on native
 "native-async" = ["async-channel"]
 
-# To support streaming fetch
+## Support streaming fetch
 streaming = ["dep:wasm-streams", "dep:futures-util"]
 
 [lib]
 
 [dependencies]
+document-features = "0.2"
 
 # For compiling natively:
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
@@ -42,8 +43,8 @@ wasm-bindgen = "0.2.86"
 wasm-bindgen-futures = "0.4"
 
 # Streaming response
-wasm-streams = { version = "0.3", optional = true }
 futures-util = { version = "0.3", optional = true }
+wasm-streams = { version = "0.3", optional = true }
 
 
 [dependencies.web-sys]
