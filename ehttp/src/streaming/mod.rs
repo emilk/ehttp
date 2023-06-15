@@ -2,6 +2,15 @@
 //!
 //! Example:
 //! ```
+//! let your_chunk_handler = std::sync::Arc::new(|chunk: Vec<u8>| {
+//!     if chunk.is_empty() {
+//!         return std::ops::ControlFlow::Break(());
+//!     }
+//!
+//!     println!("received chunk: {} bytes", chunk.len());
+//!     std::ops::ControlFlow::Continue(())
+//! });
+//!
 //! let url = "https://www.example.com";
 //! let request = ehttp::Request::get(url);
 //! ehttp::streaming::fetch(request, move |result: ehttp::Result<ehttp::streaming::Part>| {
@@ -11,7 +20,7 @@
 //!             eprintln!("an error occurred while streaming `{url}`: {err}");
 //!             return std::ops::ControlFlow::Break(());
 //!         }
-//!     }
+//!     };
 //!
 //!     match part {
 //!         ehttp::streaming::Part::Response(response) => {
@@ -23,13 +32,7 @@
 //!             }
 //!         }
 //!         ehttp::streaming::Part::Chunk(chunk) => {
-//!             match your_chunk_handler(chunk) {
-//!                 Ok(()) => std::ops::ControlFlow::Continue(()),
-//!                 Err(err) => {
-//!                     eprintln!("an error occurred while streaming `{url}`: {err}");
-//!                     std::ops::ControlFlow::Break(())
-//!                 }
-//!             }
+//!             your_chunk_handler(chunk)
 //!         }
 //!     }
 //! });
