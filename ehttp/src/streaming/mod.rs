@@ -16,10 +16,10 @@
 //!     match part {
 //!         ehttp::streaming::Part::Response(response) => {
 //!             println!("Status code: {:?}", response.status);
-//!             if !response.ok {
-//!                 std::ops::ControlFlow::Break(())
-//!             } else {
+//!             if response.ok {
 //!                 std::ops::ControlFlow::Continue(())
+//!             } else {
+//!                 std::ops::ControlFlow::Break(())
 //!             }
 //!         }
 //!         ehttp::streaming::Part::Chunk(chunk) => {
