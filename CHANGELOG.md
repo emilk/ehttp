@@ -4,8 +4,12 @@ All notable changes to the `ehttp` crate will be documented in this file.
 
 
 ## Unreleased
-* Nicer formatted error messages on web.
 
+## 0.3.0 - 2023-06-15
+* Add `ehttp::streaming`, for streaming HTTP requests ([#28](https://github.com/emilk/ehttp/pull/28)).
+* Add cross-platform `fetch_async` ([#25](https://github.com/emilk/ehttp/pull/25)).
+* Nicer formatted error messages on web.
+* Implement `Clone` and `Debug` for `Request` ([#17](https://github.com/emilk/ehttp/pull/17)).
 
 ## 0.2.0 - 2022-01-15
 * `Response::text` and `Response::content_type` no longer allocates.
