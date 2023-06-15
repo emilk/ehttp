@@ -7,8 +7,8 @@ use async_channel::{Receiver, Sender};
 
 /// Only available when compiling for native.
 ///
-/// NOTE: Ok(…) is returned on network error.
-/// Err is only for failure to use the fetch api.
+/// NOTE: `Ok(…)` is returned on network error.
+/// `Err` is only for failure to use the fetch API.
 pub fn fetch_blocking(request: &Request) -> crate::Result<Response> {
     let mut req = ureq::request(&request.method, &request.url);
 

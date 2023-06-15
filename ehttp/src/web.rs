@@ -6,8 +6,8 @@ use crate::{Request, Response};
 
 /// Only available when compiling for web.
 ///
-/// NOTE: Ok(…) is returned on network error.
-/// Err is only for failure to use the fetch api.
+/// NOTE: `Ok(…)` is returned on network error.
+/// `Err` is only for failure to use the fetch API.
 pub async fn fetch_async(request: &Request) -> crate::Result<Response> {
     fetch_jsvalue(request).await.map_err(string_from_js_value)
 }
@@ -76,8 +76,8 @@ pub(crate) fn get_response_base(response: &web_sys::Response) -> Result<PartialR
     })
 }
 
-/// NOTE: Ok(…) is returned on network error.
-/// Err is only for failure to use the fetch api.
+/// NOTE: `Ok(…)` is returned on network error.
+/// `Err` is only for failure to use the fetch API.
 async fn fetch_jsvalue(request: &Request) -> Result<Response, JsValue> {
     let response = fetch_base(request).await?;
 

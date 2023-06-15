@@ -763,7 +763,7 @@ dependencies = [
 
 [[package]]
 name = "ehttp"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "async-channel",
  "document-features",

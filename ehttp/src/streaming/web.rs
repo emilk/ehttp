@@ -12,7 +12,7 @@ use super::types::Part;
 /// Only available when compiling for web.
 ///
 /// NOTE: `Ok(…)` is returned on network error.
-/// `Err` is only for failure to use the fetch api.
+/// `Err` is only for failure to use the fetch API.
 #[cfg(feature = "streaming")]
 pub async fn fetch_async_streaming(
     request: &Request,
