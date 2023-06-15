@@ -166,8 +166,6 @@ impl DemoApp {
                 });
                 ui.end_row();
 
-                ui.checkbox(&mut self.streaming, "Use streaming fetch").on_hover_text("The ehttp::streaming API allows you to process the data piece by piece as it is received.");
-
                 if self.method == Method::Post {
                     ui.label("POST Body:");
                     ui.add(
@@ -177,6 +175,11 @@ impl DemoApp {
                     );
                     ui.end_row();
                 }
+
+                ui.checkbox(&mut self.streaming, "Use streaming fetch").on_hover_text(
+                    "The ehttp::streaming API allows you to process the data piece by piece as it is received.\n\
+                    You might need to disable caching, throttle your download speed, and/or download a large file to see the data being streamed in.");
+                ui.end_row();
             });
 
         trigger_fetch |= ui.button("fetch ▶").clicked();
