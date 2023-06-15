@@ -206,6 +206,19 @@ impl DemoApp {
                 trigger_fetch = true;
             }
 
+            let wasm_file = "https://emilk.github.io/ehttp/example_eframe_bg.wasm".to_owned();
+            if ui
+                .selectable_label(
+                    (&self.url, self.method) == (&wasm_file, Method::Get),
+                    "GET .wasm",
+                )
+                .clicked()
+            {
+                self.url = wasm_file;
+                self.method = Method::Get;
+                trigger_fetch = true;
+            }
+
             let pastebin_url = "https://httpbin.org/post".to_owned();
             if ui
                 .selectable_label(
