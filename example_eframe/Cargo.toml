@@ -11,7 +11,7 @@ publish = false
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-ehttp = { path = "../ehttp" }
+ehttp = { path = "../ehttp", features = ["streaming"] }
 eframe = "0.22"
 log = "0.4"
 

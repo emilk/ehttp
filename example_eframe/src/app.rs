@@ -1,4 +1,7 @@
-use std::sync::{Arc, Mutex};
+use std::{
+    ops::ControlFlow,
+    sync::{Arc, Mutex},
+};
 
 use eframe::egui;
 
@@ -12,6 +15,10 @@ enum Method {
 enum Download {
     None,
     InProgress,
+    StreamingInProgress {
+        response: ehttp::PartialResponse,
+        body: Vec<u8>,
+    },
     Done(ehttp::Result<ehttp::Response>),
 }
 
@@ -19,6 +26,7 @@ pub struct DemoApp {
     url: String,
     method: Method,
     request_body: String,
+    streaming: bool,
     download: Arc<Mutex<Download>>,
 }
 
@@ -28,14 +36,15 @@ impl Default for DemoApp {
             url: "https://raw.githubusercontent.com/emilk/ehttp/master/README.md".to_owned(),
             method: Method::Get,
             request_body: r#"["posting some json"]"#.to_owned(),
+            streaming: true,
             download: Arc::new(Mutex::new(Download::None)),
         }
     }
 }
 
 impl eframe::App for DemoApp {
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        egui::CentralPanel::default().show(ctx, |ui| {
+    fn update(&mut self, egui_ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        egui::CentralPanel::default().show(egui_ctx, |ui| {
             let trigger_fetch = self.ui_url(ui);
 
             if trigger_fetch {
@@ -47,11 +56,21 @@ impl eframe::App for DemoApp {
                 };
                 let download_store = self.download.clone();
                 *download_store.lock().unwrap() = Download::InProgress;
-                let ctx = ctx.clone();
-                ehttp::fetch(request, move |response| {
-                    *download_store.lock().unwrap() = Download::Done(response);
-                    ctx.request_repaint(); // Wake up UI thread
-                });
+                let egui_ctx = egui_ctx.clone();
+
+                if self.streaming {
+                    // The more complicated streaming API:
+                    ehttp::streaming::fetch(request, move |part| {
+                        egui_ctx.request_repaint(); // Wake up UI thread
+                        on_fetch_part(part, &mut download_store.lock().unwrap())
+                    });
+                } else {
+                    // The simple non-streaming API:
+                    ehttp::fetch(request, move |response| {
+                        *download_store.lock().unwrap() = Download::Done(response);
+                        egui_ctx.request_repaint(); // Wake up UI thread
+                    });
+                }
             }
 
             ui.separator();
@@ -61,6 +80,14 @@ impl eframe::App for DemoApp {
                 Download::None => {}
                 Download::InProgress => {
                     ui.label("Wait for it…");
+                }
+                Download::StreamingInProgress { body, .. } => {
+                    let num_bytes = body.len();
+                    if num_bytes < 1_000_000 {
+                        ui.label(format!("{:.1} kB", num_bytes as f32 / 1e3));
+                    } else {
+                        ui.label(format!("{:.1} MB", num_bytes as f32 / 1e6));
+                    }
                 }
                 Download::Done(response) => match response {
                     Err(err) => {
@@ -72,6 +99,48 @@ impl eframe::App for DemoApp {
                 },
             }
         });
+    }
+}
+
+fn on_fetch_part(
+    part: Result<ehttp::streaming::Part, String>,
+    download_store: &mut Download,
+) -> ControlFlow<()> {
+    let part = match part {
+        Err(error) => {
+            *download_store = Download::Done(Result::Err(error));
+            return ControlFlow::Break(());
+        }
+        Ok(part) => part,
+    };
+
+    match part {
+        ehttp::streaming::Part::Response(response) => {
+            *download_store = Download::StreamingInProgress {
+                response,
+                body: Vec::new(),
+            };
+            ControlFlow::Continue(())
+        }
+        ehttp::streaming::Part::Chunk(chunk) => {
+            if let Download::StreamingInProgress { response, mut body } =
+                std::mem::replace(download_store, Download::None)
+            {
+                body.extend_from_slice(&chunk);
+
+                if chunk.is_empty() {
+                    // This was the last chunk.
+                    *download_store = Download::Done(Ok(response.complete(body)));
+                    ControlFlow::Break(())
+                } else {
+                    // More to come.
+                    *download_store = Download::StreamingInProgress { response, body };
+                    ControlFlow::Continue(())
+                }
+            } else {
+                ControlFlow::Break(()) // some data race - abort download.
+            }
+        }
     }
 }
 
@@ -90,9 +159,9 @@ impl DemoApp {
 
                 ui.label("Method:");
                 ui.horizontal(|ui| {
-                    ui.selectable_value(&mut self.method, Method::Get, "GET")
+                    ui.radio_value(&mut self.method, Method::Get, "GET")
                         .clicked();
-                    ui.selectable_value(&mut self.method, Method::Post, "POST")
+                    ui.radio_value(&mut self.method, Method::Post, "POST")
                         .clicked();
                 });
                 ui.end_row();
@@ -106,6 +175,11 @@ impl DemoApp {
                     );
                     ui.end_row();
                 }
+
+                ui.checkbox(&mut self.streaming, "Use streaming fetch").on_hover_text(
+                    "The ehttp::streaming API allows you to process the data piece by piece as it is received.\n\
+                    You might need to disable caching, throttle your download speed, and/or download a large file to see the data being streamed in.");
+                ui.end_row();
             });
 
         trigger_fetch |= ui.button("fetch ▶").clicked();
@@ -131,6 +205,19 @@ impl DemoApp {
                 .clicked()
             {
                 self.url = self_url;
+                self.method = Method::Get;
+                trigger_fetch = true;
+            }
+
+            let wasm_file = "https://emilk.github.io/ehttp/example_eframe_bg.wasm".to_owned();
+            if ui
+                .selectable_label(
+                    (&self.url, self.method) == (&wasm_file, Method::Get),
+                    "GET .wasm",
+                )
+                .clicked()
+            {
+                self.url = wasm_file;
                 self.method = Method::Get;
                 trigger_fetch = true;
             }

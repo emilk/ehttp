@@ -58,11 +58,11 @@ pub struct Response {
     /// Status text (e.g. "File not found" for status code `404`).
     pub status_text: String,
 
-    /// The raw bytes.
-    pub bytes: Vec<u8>,
-
     /// The returned headers. All header names are lower-case.
     pub headers: BTreeMap<String, String>,
+
+    /// The raw bytes of the response body.
+    pub bytes: Vec<u8>,
 }
 
 impl Response {
@@ -104,6 +104,26 @@ pub struct PartialResponse {
 
     /// The returned headers. All header names are lower-case.
     pub headers: BTreeMap<String, String>,
+}
+
+impl PartialResponse {
+    pub fn complete(self, bytes: Vec<u8>) -> Response {
+        let Self {
+            url,
+            ok,
+            status,
+            status_text,
+            headers,
+        } = self;
+        Response {
+            url,
+            ok,
+            status,
+            status_text,
+            headers,
+            bytes,
+        }
+    }
 }
 
 /// A description of an error.
