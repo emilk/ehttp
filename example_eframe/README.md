@@ -1,6 +1,6 @@
 Example of using `ehttp` on web and native.
 
-## Native usafe:
+## Native usage:
 ```
 cargo run --release -p example_eframe
 ```
