@@ -1,10 +1,25 @@
+# https://github.com/EmbarkStudios/cargo-deny
+#
+# cargo-deny checks our dependency tree for copy-left licenses,
+# duplicate dependencies, and rustsec advisories (https://rustsec.org/advisories).
+#
+# Install: `cargo install cargo-deny`
+# Check: `cargo deny check`.
+
+# Note: running just `cargo deny check` without a `--target` can result in
+# false positives due to https://github.com/EmbarkStudios/cargo-deny/issues/324
 targets = [
-    { triple = "x86_64-unknown-linux-gnu" },
     { triple = "aarch64-apple-darwin" },
+    { triple = "i686-pc-windows-gnu" },
+    { triple = "i686-pc-windows-msvc" },
+    { triple = "i686-unknown-linux-gnu" },
+    { triple = "wasm32-unknown-unknown" },
     { triple = "x86_64-apple-darwin" },
+    { triple = "x86_64-pc-windows-gnu" },
     { triple = "x86_64-pc-windows-msvc" },
-    { triple = "aarch64-linux-android" },
+    { triple = "x86_64-unknown-linux-gnu" },
     { triple = "x86_64-unknown-linux-musl" },
+    { triple = "x86_64-unknown-redox" },
 ]
 
 [advisories]
