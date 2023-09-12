@@ -7,7 +7,18 @@ use crate::{Request, Response};
 /// Only available when compiling for web.
 ///
 /// NOTE: `Ok(…)` is returned on network error.
-/// `Err` is only for failure to use the fetch API.
+///
+/// `Err` can happen for a number of reasons:
+/// * No internet connection
+/// * DNS resolution failed
+/// * Firewall or proxy blocked the request
+/// * Server is not reachable
+/// * The URL is invalid
+/// * Server's SSL cert is invalid
+/// * CORS errors
+/// * The initial GET which returned HTML contained CSP headers to block access to the resource
+/// * A browser extension blocked the request (e.g. ad blocker)
+/// * …
 pub async fn fetch_async(request: &Request) -> crate::Result<Response> {
     fetch_jsvalue(request)
         .await

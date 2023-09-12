@@ -5,10 +5,25 @@ use crate::{Request, Response};
 #[cfg(feature = "native-async")]
 use async_channel::{Receiver, Sender};
 
+/// Performs a  HTTP request and blocks the thread until it is done.
+///
 /// Only available when compiling for native.
 ///
 /// NOTE: `Ok(…)` is returned on network error.
-/// `Err` is only for failure to use the fetch API.
+///
+/// `Ok` is returned if we get a response, even if it's a 404.
+///
+/// `Err` can happen for a number of reasons:
+/// * No internet connection
+/// * DNS resolution failed
+/// * Firewall or proxy blocked the request
+/// * Server is not reachable
+/// * The URL is invalid
+/// * Server's SSL cert is invalid
+/// * CORS errors
+/// * The initial GET which returned HTML contained CSP headers to block access to the resource
+/// * A browser extension blocked the request (e.g. ad blocker)
+/// * …
 pub fn fetch_blocking(request: &Request) -> crate::Result<Response> {
     let mut req = ureq::request(&request.method, &request.url);
 

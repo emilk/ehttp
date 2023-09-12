@@ -22,6 +22,20 @@
 //!
 
 /// Performs an HTTP request and calls the given callback when done.
+///
+/// `Ok` is returned if we get a response, even if it's a 404.
+///
+/// `Err` can happen for a number of reasons:
+/// * No internet connection
+/// * DNS resolution failed
+/// * Firewall or proxy blocked the request
+/// * Server is not reachable
+/// * The URL is invalid
+/// * Server's SSL cert is invalid
+/// * CORS errors
+/// * The initial GET which returned HTML contained CSP headers to block access to the resource
+/// * A browser extension blocked the request (e.g. ad blocker)
+/// * …
 pub fn fetch(request: Request, on_done: impl 'static + Send + FnOnce(Result<Response>)) {
     #[cfg(not(target_arch = "wasm32"))]
     native::fetch(request, Box::new(on_done));
@@ -32,12 +46,23 @@ pub fn fetch(request: Request, on_done: impl 'static + Send + FnOnce(Result<Resp
 
 /// Performs an `async` HTTP request.
 ///
-/// Returns `Err` if we fail to make a request.
-/// Returns `Ok` if we get a response, even if it's a 404.
-///
 /// Available on following platforms:
 /// - web
 /// - native behind the `native-async` feature.
+///
+/// `Ok` is returned if we get a response, even if it's a 404.
+///
+/// `Err` can happen for a number of reasons:
+/// * No internet connection
+/// * DNS resolution failed
+/// * Firewall or proxy blocked the request
+/// * Server is not reachable
+/// * The URL is invalid
+/// * Server's SSL cert is invalid
+/// * CORS errors
+/// * The initial GET which returned HTML contained CSP headers to block access to the resource
+/// * A browser extension blocked the request (e.g. ad blocker)
+/// * …
 #[cfg(any(target_arch = "wasm32", feature = "native-async"))]
 pub async fn fetch_async(request: Request) -> Result<Response> {
     #[cfg(not(target_arch = "wasm32"))]
