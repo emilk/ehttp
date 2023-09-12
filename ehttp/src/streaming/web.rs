@@ -4,7 +4,7 @@ use futures_util::Stream;
 use futures_util::StreamExt;
 use wasm_bindgen::prelude::*;
 
-use crate::web::{fetch_base, fetch_error_to_string, get_response_base, spawn_future};
+use crate::web::{fetch_base, get_response_base, spawn_future, string_from_fetch_error};
 use crate::Request;
 
 use super::types::Part;
@@ -19,8 +19,8 @@ pub async fn fetch_async_streaming(
 ) -> crate::Result<impl Stream<Item = crate::Result<Part>>> {
     let stream = fetch_jsvalue_stream(request)
         .await
-        .map_err(fetch_error_to_string)?;
-    Ok(stream.map(|result| result.map_err(fetch_error_to_string)))
+        .map_err(string_from_fetch_error)?;
+    Ok(stream.map(|result| result.map_err(string_from_fetch_error)))
 }
 
 #[cfg(feature = "streaming")]
@@ -54,7 +54,7 @@ pub(crate) fn fetch_streaming(
         let mut stream = match fetch_jsvalue_stream(&request).await {
             Ok(stream) => stream,
             Err(e) => {
-                on_data(Err(fetch_error_to_string(e)));
+                on_data(Err(string_from_fetch_error(e)));
                 return;
             }
         };
@@ -67,7 +67,7 @@ pub(crate) fn fetch_streaming(
                     }
                 }
                 Err(e) => {
-                    on_data(Err(fetch_error_to_string(e)));
+                    on_data(Err(string_from_fetch_error(e)));
                     return;
                 }
             }

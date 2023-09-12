@@ -9,11 +9,13 @@ use crate::{Request, Response};
 /// NOTE: `Ok(…)` is returned on network error.
 /// `Err` is only for failure to use the fetch API.
 pub async fn fetch_async(request: &Request) -> crate::Result<Response> {
-    fetch_jsvalue(request).await.map_err(fetch_error_to_string)
+    fetch_jsvalue(request)
+        .await
+        .map_err(string_from_fetch_error)
 }
 
 /// This should only be used to handle opaque exceptions thrown by the `fetch` call.
-pub(crate) fn fetch_error_to_string(value: JsValue) -> String {
+pub(crate) fn string_from_fetch_error(value: JsValue) -> String {
     value.as_string().unwrap_or_else(|| {
         // TypeError means that this is an opaque `network error`, as defined by the spec:
         // https://fetch.spec.whatwg.org/
