@@ -21,7 +21,7 @@ pub(crate) fn string_from_fetch_error(value: JsValue) -> String {
         // https://fetch.spec.whatwg.org/
         if value.has_type::<js_sys::TypeError>() {
             web_sys::console::error_1(&value);
-            "failed to fetch, check the developer console for details".to_owned()
+            "Failed to fetch, check the developer console for details".to_owned()
         } else {
             format!("{:#?}", value)
         }
