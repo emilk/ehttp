@@ -5,6 +5,9 @@ All notable changes to the `ehttp` crate will be documented in this file.
 
 ## Unreleased
 
+## 0.3.1 - 2023-09-27
+* Improve opaque network error message on web ([#33](https://github.com/emilk/ehttp/pull/33)).
+
 ## 0.3.0 - 2023-06-15
 * Add `ehttp::streaming`, for streaming HTTP requests ([#28](https://github.com/emilk/ehttp/pull/28)).
 * Add cross-platform `fetch_async` ([#25](https://github.com/emilk/ehttp/pull/25)).
