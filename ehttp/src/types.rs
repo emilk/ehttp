@@ -1,5 +1,3 @@
-use std::collections::BTreeMap;
-
 /// A simple HTTP request.
 #[derive(Clone, Debug)]
 pub struct Request {
@@ -13,7 +11,7 @@ pub struct Request {
     pub body: Vec<u8>,
 
     /// ("Accept", "*/*"), …
-    pub headers: BTreeMap<String, String>,
+    pub headers: Vec<(String, String)>,
 }
 
 impl Request {
@@ -26,6 +24,20 @@ impl Request {
             body: vec![],
             headers: crate::headers(&[("Accept", "*/*")]),
         }
+    }
+
+    /// Get `Header` list from request with the given key.
+    pub fn get_header(&self, key: String) -> Vec<String> {
+        self.headers
+            .iter()
+            .filter(|h| h.0 == key)
+            .map(|h| h.1.clone())
+            .collect()
+    }
+
+    /// Add a `Header` for request.
+    pub fn add_header(&mut self, key: String, value: String) {
+        self.headers.push((key, value))
     }
 
     /// Create a `POST` request with the given url and body.
@@ -59,7 +71,7 @@ pub struct Response {
     pub status_text: String,
 
     /// The returned headers. All header names are lower-case.
-    pub headers: BTreeMap<String, String>,
+    pub headers: Vec<(String, String)>,
 
     /// The raw bytes of the response body.
     pub bytes: Vec<u8>,
@@ -71,7 +83,19 @@ impl Response {
     }
 
     pub fn content_type(&self) -> Option<&str> {
-        self.headers.get("content-type").map(|s| s.as_str())
+        self.headers
+            .iter()
+            .find(|s| s.0 == "content-type")
+            .map(|s| s.1.as_str())
+    }
+
+    /// Get `Header` list from response with the given key.
+    pub fn get_header(&self, key: String) -> Vec<String> {
+        self.headers
+            .iter()
+            .filter(|h| h.0 == key)
+            .map(|h| h.1.clone())
+            .collect()
     }
 }
 
@@ -104,7 +128,7 @@ pub struct PartialResponse {
     pub status_text: String,
 
     /// The returned headers. All header names are lower-case.
-    pub headers: BTreeMap<String, String>,
+    pub headers: Vec<(String, String)>,
 }
 
 impl PartialResponse {

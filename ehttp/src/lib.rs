@@ -99,7 +99,7 @@ pub mod streaming;
 ///     ..Request::get("https://www.example.com")
 /// };
 /// ```
-pub fn headers(headers: &[(&str, &str)]) -> std::collections::BTreeMap<String, String> {
+pub fn headers(headers: &[(&str, &str)]) -> Vec<(String, String)> {
     headers
         .iter()
         .map(|e| (e.0.to_owned(), e.1.to_owned()))

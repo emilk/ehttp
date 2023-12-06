@@ -265,8 +265,8 @@ fn response_ui(ui: &mut egui::Ui, response: &ehttp::Response) {
                     .spacing(egui::vec2(ui.spacing().item_spacing.x * 2.0, 0.0))
                     .show(ui, |ui| {
                         for header in &response.headers {
-                            ui.label(header.0);
-                            ui.label(header.1);
+                            ui.label(header.0.clone());
+                            ui.label(header.1.clone());
                             ui.end_row();
                         }
                     })

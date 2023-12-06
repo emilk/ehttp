@@ -1,5 +1,3 @@
-use std::collections::BTreeMap;
-
 use crate::{Request, Response};
 
 #[cfg(feature = "native-async")]
@@ -28,7 +26,7 @@ pub fn fetch_blocking(request: &Request) -> crate::Result<Response> {
     let mut req = ureq::request(&request.method, &request.url);
 
     for header in &request.headers {
-        req = req.set(header.0, header.1);
+        req = req.set(header.0.as_str(), header.1.as_str());
     }
 
     let resp = if request.body.is_empty() {
@@ -46,11 +44,11 @@ pub fn fetch_blocking(request: &Request) -> crate::Result<Response> {
     let url = resp.get_url().to_owned();
     let status = resp.status();
     let status_text = resp.status_text().to_owned();
-    let mut headers = BTreeMap::new();
+    let mut headers = vec![];
     for key in &resp.headers_names() {
         if let Some(value) = resp.header(key) {
             // lowercase for easy lookup
-            headers.insert(key.to_ascii_lowercase(), value.to_owned());
+            headers.push((key.to_ascii_lowercase(), value.to_owned()));
         }
     }
 
