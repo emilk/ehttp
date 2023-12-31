@@ -12,7 +12,7 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 ehttp = { path = "../ehttp", features = ["streaming"] }
-eframe = "0.22"
+eframe = "0.24.1"
 log = "0.4"
 
 # native:

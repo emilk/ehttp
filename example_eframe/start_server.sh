@@ -11,5 +11,5 @@ cargo install basic-http-server
 echo "starting server…"
 echo "serving at http://localhost:8888"
 
-(cd docs && basic-http-server --addr 127.0.0.1:8787 .)
-# (cd docs && python3 -m http.server 8888 --bind 127.0.0.1)
+(cd web_demo && basic-http-server --addr 127.0.0.1:8787 .)
+# (cd web_demo && python3 -m http.server 8888 --bind 127.0.0.1)

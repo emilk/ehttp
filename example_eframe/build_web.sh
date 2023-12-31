@@ -45,7 +45,7 @@ done
 # https://rustwasm.github.io/docs/wasm-bindgen/web-sys/unstable-apis.html
 export RUSTFLAGS=--cfg=web_sys_unstable_apis
 
-FINAL_WASM_PATH=docs/${CRATE_NAME}_bg.wasm
+FINAL_WASM_PATH=web_demo/${CRATE_NAME}_bg.wasm
 
 # Clear output from old stuff:
 rm -f "${FINAL_WASM_PATH}"
@@ -61,7 +61,7 @@ cargo build \
 echo "Generating JS bindings for wasm…"
 TARGET_NAME="${CRATE_NAME}.wasm"
 wasm-bindgen "target/wasm32-unknown-unknown/$BUILD/$TARGET_NAME" \
-  --out-dir docs --no-modules --no-typescript
+  --out-dir web_demo --no-modules --no-typescript
 
 # to get wasm-strip:  apt/brew/dnf install wabt
 # wasm-strip "${FINAL_WASM_PATH}"
