@@ -5,5 +5,5 @@ cd "$script_path/.."
 
 # Pre-requisites:
 rustup target add wasm32-unknown-unknown
-cargo install -f wasm-bindgen-cli --version 0.2.87
+cargo install -f wasm-bindgen-cli --version 0.2.89
 cargo update -p wasm-bindgen
