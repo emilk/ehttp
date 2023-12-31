@@ -4,7 +4,7 @@ version = "0.3.1"
 authors = ["Emil Ernerfeldt <emil.ernerfeldt@gmail.com>"]
 description = "Minimal HTTP client for both native and WASM"
 edition = "2018"
-rust-version = "1.65"
+rust-version = "1.67"
 homepage = "https://github.com/emilk/ehttp"
 license = "MIT OR Apache-2.0"
 readme = "../README.md"
@@ -39,7 +39,7 @@ async-channel = { version = "1.8", optional = true }
 # For compiling to web:
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 js-sys = "0.3"
-wasm-bindgen = "0.2.87"
+wasm-bindgen = "0.2.89"
 wasm-bindgen-futures = "0.4"
 
 # Streaming response
