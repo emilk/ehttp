@@ -3,27 +3,37 @@ set -eu
 script_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 cd "$script_path/.."
 
+./example_eframe/setup_web.sh
+
 CRATE_NAME="example_eframe"
 
 OPEN=false
-FAST=false
+OPTIMIZE=false
+BUILD=debug
+BUILD_FLAGS=""
+WASM_OPT_FLAGS="-O2 --fast-math"
 
 while test $# -gt 0; do
   case "$1" in
     -h|--help)
-      echo "build_demo_web.sh [--fast] [--open]"
-      echo "  --fast: skip optimization step"
+      echo "build_demo_web.sh [--release] [--open]"
       echo "  --open: open the result in a browser"
+      echo "  --release: Build with --release, and then run wasm-opt."
       exit 0
       ;;
-    --fast)
-      shift
-      FAST=true
-      ;;
+
     --open)
       shift
       OPEN=true
       ;;
+
+    --release)
+      shift
+      OPTIMIZE=true
+      BUILD="release"
+      BUILD_FLAGS="--release"
+      ;;
+
     *)
       break
       ;;
@@ -35,15 +45,16 @@ done
 # https://rustwasm.github.io/docs/wasm-bindgen/web-sys/unstable-apis.html
 export RUSTFLAGS=--cfg=web_sys_unstable_apis
 
+FINAL_WASM_PATH=docs/${CRATE_NAME}_bg.wasm
+
 # Clear output from old stuff:
-rm -f docs/${CRATE_NAME}_bg.wasm
+rm -f "${FINAL_WASM_PATH}"
 
 echo "Building rust…"
-BUILD=release
 
 cargo build \
   -p ${CRATE_NAME} \
-  --release \
+  ${BUILD_FLAGS} \
   --lib \
   --target wasm32-unknown-unknown
 
@@ -51,18 +62,17 @@ echo "Generating JS bindings for wasm…"
 TARGET_NAME="${CRATE_NAME}.wasm"
 wasm-bindgen "target/wasm32-unknown-unknown/$BUILD/$TARGET_NAME" \
   --out-dir docs --no-modules --no-typescript
-# wasm-pack build example_eframe --out-dir docs
 
 # to get wasm-strip:  apt/brew/dnf install wabt
-# wasm-strip docs/${CRATE_NAME}_bg.wasm
+# wasm-strip "${FINAL_WASM_PATH}"
 
-if [ "${FAST}" = false ]; then
+if [[ "${OPTIMIZE}" = true ]]; then
   echo "Optimizing wasm…"
   # to get wasm-opt:  apt/brew/dnf install binaryen
-  wasm-opt docs/${CRATE_NAME}_bg.wasm -O2 --fast-math -o docs/${CRATE_NAME}_bg.wasm # add -g to get debug symbols
+  wasm-opt "${FINAL_WASM_PATH}" $WASM_OPT_FLAGS -o "${FINAL_WASM_PATH}"
 fi
 
-echo "Finished docs/${CRATE_NAME}_bg.wasm"
+echo "Finished ${FINAL_WASM_PATH}"
 
 if [ "${OPEN}" = true ]; then
   if [[ "$OSTYPE" == "linux-gnu"* ]]; then
