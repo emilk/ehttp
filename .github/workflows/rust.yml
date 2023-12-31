@@ -17,7 +17,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: 1.65.0
+          toolchain: 1.67.0
           override: true
       - uses: actions-rs/cargo@v1
         with:
@@ -32,7 +32,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: 1.65.0
+          toolchain: 1.67.0
           override: true
       - run: rustup target add wasm32-unknown-unknown
       - uses: actions-rs/cargo@v1
@@ -48,7 +48,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: 1.65.0
+          toolchain: 1.67.0
           override: true
       - uses: actions-rs/cargo@v1
         with:
@@ -63,7 +63,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: 1.65.0
+          toolchain: 1.67.0
           override: true
       - run: rustup component add rustfmt
       - uses: actions-rs/cargo@v1
@@ -79,7 +79,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: 1.65.0
+          toolchain: 1.67.0
           override: true
       - run: rustup component add clippy
       - uses: actions-rs/cargo@v1
@@ -95,7 +95,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: 1.65.0
+          toolchain: 1.67.0
           override: true
       - run: cargo doc -p ehttp --lib --no-deps --all-features
 
@@ -107,7 +107,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: 1.65.0
+          toolchain: 1.67.0
           override: true
       - run: rustup target add wasm32-unknown-unknown
       - run: cargo doc -p ehttp --target wasm32-unknown-unknown --lib --no-deps --all-features
