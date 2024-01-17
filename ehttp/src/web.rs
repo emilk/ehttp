@@ -67,6 +67,7 @@ pub(crate) async fn fetch_base(request: &Request) -> Result<web_sys::Response, J
 pub(crate) fn get_response_base(response: &web_sys::Response) -> Result<PartialResponse, JsValue> {
     // https://developer.mozilla.org/en-US/docs/Web/API/Headers
     // "Note: When Header values are iterated over, […] values from duplicate header names are combined."
+    // TODO: support duplicate header names
     let js_headers: web_sys::Headers = response.headers();
     let js_iter = js_sys::try_iter(&js_headers)
         .expect("headers try_iter")
