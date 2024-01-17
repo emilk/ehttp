@@ -40,7 +40,7 @@ pub fn fetch_blocking(request: &Request) -> crate::Result<Response> {
     let (ok, resp) = match resp {
         Ok(resp) => (true, resp),
         Err(ureq::Error::Status(_, resp)) => (false, resp), // Still read the body on e.g. 404
-        Err(ureq::Error::Transport(error)) => return Err(error.to_string()),
+        Err(ureq::Error::Transport(err)) => return Err(err.to_string()),
     };
 
     let url = resp.get_url().to_owned();
@@ -56,10 +56,14 @@ pub fn fetch_blocking(request: &Request) -> crate::Result<Response> {
 
     let mut reader = resp.into_reader();
     let mut bytes = vec![];
-    use std::io::Read;
-    reader
-        .read_to_end(&mut bytes)
-        .map_err(|err| err.to_string())?;
+    use std::io::Read as _;
+    if let Err(err) = reader.read_to_end(&mut bytes) {
+        if request.method == "HEAD" && err.kind() == std::io::ErrorKind::UnexpectedEof {
+            // We don't really expect a body for HEAD requests, so this is fine.
+        } else {
+            return Err(format!("Failed to read response body: {err}"));
+        }
+    }
 
     let response = Response {
         url,

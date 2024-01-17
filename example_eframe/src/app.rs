@@ -9,6 +9,7 @@ use eframe::egui;
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 enum Method {
     Get,
+    Head,
     Post,
 }
 
@@ -50,6 +51,7 @@ impl eframe::App for DemoApp {
             if trigger_fetch {
                 let request = match self.method {
                     Method::Get => ehttp::Request::get(&self.url),
+                    Method::Head => ehttp::Request::head(&self.url),
                     Method::Post => {
                         ehttp::Request::post(&self.url, self.request_body.as_bytes().to_vec())
                     }
@@ -107,8 +109,8 @@ fn on_fetch_part(
     download_store: &mut Download,
 ) -> ControlFlow<()> {
     let part = match part {
-        Err(error) => {
-            *download_store = Download::Done(Result::Err(error));
+        Err(err) => {
+            *download_store = Download::Done(Result::Err(err));
             return ControlFlow::Break(());
         }
         Ok(part) => part,
@@ -160,6 +162,8 @@ impl DemoApp {
                 ui.label("Method:");
                 ui.horizontal(|ui| {
                     ui.radio_value(&mut self.method, Method::Get, "GET")
+                        .clicked();
+                    ui.radio_value(&mut self.method, Method::Head, "HEAD")
                         .clicked();
                     ui.radio_value(&mut self.method, Method::Post, "POST")
                         .clicked();
