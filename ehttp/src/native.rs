@@ -1,5 +1,3 @@
-use std::collections::BTreeMap;
-
 use crate::{Request, Response};
 
 #[cfg(feature = "native-async")]
@@ -27,8 +25,8 @@ use async_channel::{Receiver, Sender};
 pub fn fetch_blocking(request: &Request) -> crate::Result<Response> {
     let mut req = ureq::request(&request.method, &request.url);
 
-    for header in &request.headers {
-        req = req.set(header.0, header.1);
+    for (k, v) in &request.headers {
+        req = req.set(k, v);
     }
 
     let resp = if request.body.is_empty() {
@@ -46,13 +44,13 @@ pub fn fetch_blocking(request: &Request) -> crate::Result<Response> {
     let url = resp.get_url().to_owned();
     let status = resp.status();
     let status_text = resp.status_text().to_owned();
-    let mut headers = BTreeMap::new();
+    let mut headers = crate::Headers::default();
     for key in &resp.headers_names() {
         if let Some(value) = resp.header(key) {
-            // lowercase for easy lookup
-            headers.insert(key.to_ascii_lowercase(), value.to_owned());
+            headers.insert(key, value.to_owned());
         }
     }
+    headers.sort(); // It reads nicer, and matches web backend.
 
     let mut reader = resp.into_reader();
     let mut bytes = vec![];
@@ -70,8 +68,8 @@ pub fn fetch_blocking(request: &Request) -> crate::Result<Response> {
         ok,
         status,
         status_text,
-        bytes,
         headers,
+        bytes,
     };
     Ok(response)
 }

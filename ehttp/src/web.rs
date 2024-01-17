@@ -53,8 +53,8 @@ pub(crate) async fn fetch_base(request: &Request) -> Result<web_sys::Response, J
 
     let js_request = web_sys::Request::new_with_str_and_init(&request.url, &opts)?;
 
-    for h in &request.headers {
-        js_request.headers().set(h.0, h.1)?;
+    for (k, v) in &request.headers {
+        js_request.headers().set(k, v)?;
     }
 
     let window = web_sys::window().unwrap();
@@ -67,26 +67,25 @@ pub(crate) async fn fetch_base(request: &Request) -> Result<web_sys::Response, J
 pub(crate) fn get_response_base(response: &web_sys::Response) -> Result<PartialResponse, JsValue> {
     // https://developer.mozilla.org/en-US/docs/Web/API/Headers
     // "Note: When Header values are iterated over, […] values from duplicate header names are combined."
+    // TODO: support duplicate header names
     let js_headers: web_sys::Headers = response.headers();
     let js_iter = js_sys::try_iter(&js_headers)
         .expect("headers try_iter")
         .expect("headers have an iterator");
 
-    let mut headers = std::collections::BTreeMap::new();
+    let mut headers = crate::Headers::default();
     for item in js_iter {
         let item = item.expect("headers iterator");
         let array: js_sys::Array = item.into();
         let v: Vec<JsValue> = array.to_vec();
 
-        let mut key = v[0]
+        let key = v[0]
             .as_string()
             .ok_or_else(|| JsValue::from_str("headers name"))?;
         let value = v[1]
             .as_string()
             .ok_or_else(|| JsValue::from_str("headers value"))?;
 
-        // for easy lookup
-        key.make_ascii_lowercase();
         headers.insert(key, value);
     }
 

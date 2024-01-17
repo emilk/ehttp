@@ -1,4 +1,91 @@
-use std::collections::BTreeMap;
+/// Headers in a [`Request`] or [`Response`].
+///
+/// Note that the same header key can appear twice.
+#[derive(Clone, Debug, Default)]
+pub struct Headers {
+    /// Name-value pairs.
+    pub headers: Vec<(String, String)>,
+}
+
+impl Headers {
+    /// ```
+    /// use ehttp::Request;
+    /// let request = Request {
+    ///     headers: ehttp::Headers::new(&[
+    ///         ("Accept", "*/*"),
+    ///         ("Content-Type", "text/plain; charset=utf-8"),
+    ///     ]),
+    ///     ..Request::get("https://www.example.com")
+    /// };
+    /// ```
+    pub fn new(headers: &[(&str, &str)]) -> Self {
+        Self {
+            headers: headers
+                .iter()
+                .map(|e| (e.0.to_owned(), e.1.to_owned()))
+                .collect(),
+        }
+    }
+
+    /// Will add the key/value pair to the headers.
+    ///
+    /// If the key already exists, it will also be kept,
+    /// so the same key can appear twice.
+    pub fn insert(&mut self, key: impl ToString, value: impl ToString) {
+        self.headers.push((key.to_string(), value.to_string()));
+    }
+
+    /// Get the value of the first header with the given key.
+    ///
+    /// The lookup is case-insentive.
+    pub fn get(&self, key: &str) -> Option<&str> {
+        let key = key.to_string().to_lowercase();
+        self.headers
+            .iter()
+            .find(|(k, _)| k.to_lowercase() == key)
+            .map(|(_, v)| v.as_str())
+    }
+
+    /// Get all the values that match the given key.
+    ///
+    /// The lookup is case-insentive.
+    pub fn get_all(&self, key: &str) -> impl Iterator<Item = &str> {
+        let key = key.to_string().to_lowercase();
+        self.headers
+            .iter()
+            .filter(move |(k, _)| k.to_lowercase() == key)
+            .map(|(_, v)| v.as_str())
+    }
+
+    /// Sort the headers by key.
+    ///
+    /// This makes the headers easier to read when printed out.
+    ///
+    /// `ehttp` will sort the headers in the responses.
+    pub fn sort(&mut self) {
+        self.headers.sort_by(|a, b| a.0.cmp(&b.0));
+    }
+}
+
+impl IntoIterator for Headers {
+    type Item = (String, String);
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.headers.into_iter()
+    }
+}
+
+impl<'h> IntoIterator for &'h Headers {
+    type Item = &'h (String, String);
+    type IntoIter = std::slice::Iter<'h, (String, String)>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.headers.iter()
+    }
+}
+
+// ----------------------------------------------------------------------------
 
 /// A simple HTTP request.
 #[derive(Clone, Debug)]
@@ -13,7 +100,7 @@ pub struct Request {
     pub body: Vec<u8>,
 
     /// ("Accept", "*/*"), …
-    pub headers: BTreeMap<String, String>,
+    pub headers: Headers,
 }
 
 impl Request {
@@ -24,7 +111,7 @@ impl Request {
             method: "GET".to_owned(),
             url: url.to_string(),
             body: vec![],
-            headers: crate::headers(&[("Accept", "*/*")]),
+            headers: Headers::new(&[("Accept", "*/*")]),
         }
     }
 
@@ -35,7 +122,7 @@ impl Request {
             method: "HEAD".to_owned(),
             url: url.to_string(),
             body: vec![],
-            headers: crate::headers(&[("Accept", "*/*")]),
+            headers: Headers::new(&[("Accept", "*/*")]),
         }
     }
 
@@ -46,7 +133,7 @@ impl Request {
             method: "POST".to_owned(),
             url: url.to_string(),
             body,
-            headers: crate::headers(&[
+            headers: Headers::new(&[
                 ("Accept", "*/*"),
                 ("Content-Type", "text/plain; charset=utf-8"),
             ]),
@@ -55,7 +142,7 @@ impl Request {
 }
 
 /// Response from a completed HTTP request.
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Clone)]
 pub struct Response {
     /// The URL we ended up at. This can differ from the request url when we have followed redirects.
     pub url: String,
@@ -69,8 +156,8 @@ pub struct Response {
     /// Status text (e.g. "File not found" for status code `404`).
     pub status_text: String,
 
-    /// The returned headers. All header names are lower-case.
-    pub headers: BTreeMap<String, String>,
+    /// The returned headers.
+    pub headers: Headers,
 
     /// The raw bytes of the response body.
     pub bytes: Vec<u8>,
@@ -81,26 +168,36 @@ impl Response {
         std::str::from_utf8(&self.bytes).ok()
     }
 
+    /// Convenience for getting the `content-type` header.
     pub fn content_type(&self) -> Option<&str> {
-        self.headers.get("content-type").map(|s| s.as_str())
+        self.headers.get("content-type")
     }
 }
 
 impl std::fmt::Debug for Response {
     fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let Self {
+            url,
+            ok,
+            status,
+            status_text,
+            headers,
+            bytes,
+        } = self;
+
         fmt.debug_struct("Response")
-            .field("url", &self.url)
-            .field("ok", &self.ok)
-            .field("status", &self.status)
-            .field("status_text", &self.status_text)
-            //    .field("bytes", &self.bytes)
-            .field("headers", &self.headers)
+            .field("url", url)
+            .field("ok", ok)
+            .field("status", status)
+            .field("status_text", status_text)
+            .field("headers", headers)
+            .field("bytes", &format!("{} bytes", bytes.len()))
             .finish_non_exhaustive()
     }
 }
 
 /// An HTTP response status line and headers used for the [`streaming`](crate::streaming) API.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug)]
 pub struct PartialResponse {
     /// The URL we ended up at. This can differ from the request url when we have followed redirects.
     pub url: String,
@@ -114,8 +211,8 @@ pub struct PartialResponse {
     /// Status text (e.g. "File not found" for status code `404`).
     pub status_text: String,
 
-    /// The returned headers. All header names are lower-case.
-    pub headers: BTreeMap<String, String>,
+    /// The returned headers.
+    pub headers: Headers,
 }
 
 impl PartialResponse {
