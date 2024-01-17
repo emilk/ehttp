@@ -73,7 +73,7 @@ pub async fn fetch_async(request: Request) -> Result<Response> {
 }
 
 mod types;
-pub use types::{Error, PartialResponse, Request, Response, Result};
+pub use types::{Error, Headers, PartialResponse, Request, Response, Result};
 
 #[cfg(not(target_arch = "wasm32"))]
 mod native;
@@ -88,20 +88,7 @@ pub use web::spawn_future;
 #[cfg(feature = "streaming")]
 pub mod streaming;
 
-/// Helper for constructing [`Request::headers`].
-/// ```
-/// use ehttp::Request;
-/// let request = Request {
-///     headers: ehttp::headers(&[
-///         ("Accept", "*/*"),
-///         ("Content-Type", "text/plain; charset=utf-8"),
-///     ]),
-///     ..Request::get("https://www.example.com")
-/// };
-/// ```
-pub fn headers(headers: &[(&str, &str)]) -> std::collections::BTreeMap<String, String> {
-    headers
-        .iter()
-        .map(|e| (e.0.to_owned(), e.1.to_owned()))
-        .collect()
+#[deprecated = "Use ehttp::Headers::new"]
+pub fn headers(headers: &[(&str, &str)]) -> Headers {
+    Headers::new(headers)
 }

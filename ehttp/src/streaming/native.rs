@@ -1,4 +1,3 @@
-use std::collections::BTreeMap;
 use std::ops::ControlFlow;
 
 use crate::Request;
@@ -12,8 +11,8 @@ pub fn fetch_streaming_blocking(
 ) {
     let mut req = ureq::request(&request.method, &request.url);
 
-    for header in &request.headers {
-        req = req.set(header.0, header.1);
+    for (k, v) in &request.headers {
+        req = req.set(k, v);
     }
 
     let resp = if request.body.is_empty() {
@@ -34,10 +33,9 @@ pub fn fetch_streaming_blocking(
     let url = resp.get_url().to_owned();
     let status = resp.status();
     let status_text = resp.status_text().to_owned();
-    let mut headers = BTreeMap::new();
+    let mut headers = crate::Headers::default();
     for key in &resp.headers_names() {
         if let Some(value) = resp.header(key) {
-            // lowercase for easy lookup
             headers.insert(key.to_ascii_lowercase(), value.to_owned());
         }
     }
