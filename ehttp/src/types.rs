@@ -28,6 +28,17 @@ impl Request {
         }
     }
 
+    /// Create a `HEAD` request with the given url.
+    #[allow(clippy::needless_pass_by_value)]
+    pub fn head(url: impl ToString) -> Self {
+        Self {
+            method: "HEAD".to_owned(),
+            url: url.to_string(),
+            body: vec![],
+            headers: crate::headers(&[("Accept", "*/*")]),
+        }
+    }
+
     /// Create a `POST` request with the given url and body.
     #[allow(clippy::needless_pass_by_value)]
     pub fn post(url: impl ToString, body: Vec<u8>) -> Self {

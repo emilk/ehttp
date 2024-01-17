@@ -25,8 +25,8 @@ pub fn fetch_streaming_blocking(
     let (ok, resp) = match resp {
         Ok(resp) => (true, resp),
         Err(ureq::Error::Status(_, resp)) => (false, resp), // Still read the body on e.g. 404
-        Err(ureq::Error::Transport(error)) => {
-            on_data(Err(error.to_string()));
+        Err(ureq::Error::Transport(err)) => {
+            on_data(Err(err.to_string()));
             return;
         }
     };
@@ -68,9 +68,15 @@ pub fn fetch_streaming_blocking(
                 on_data(Ok(Part::Chunk(vec![])));
                 break;
             }
-            Err(error) => {
-                on_data(Err(error.to_string()));
-                return;
+            Err(err) => {
+                if request.method == "HEAD" && err.kind() == std::io::ErrorKind::UnexpectedEof {
+                    // We don't really expect a body for HEAD requests, so this is fine.
+                    on_data(Ok(Part::Chunk(vec![])));
+                    break;
+                } else {
+                    on_data(Err(format!("Failed to read response body: {err}")));
+                    return;
+                }
             }
         };
     }
