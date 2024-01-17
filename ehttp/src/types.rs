@@ -56,6 +56,15 @@ impl Headers {
             .filter(move |(k, _)| k.to_lowercase() == key)
             .map(|(_, v)| v.as_str())
     }
+
+    /// Sort the headers by key.
+    ///
+    /// This makes the headers easier to read when printed out.
+    ///
+    /// `ehttp` will sort the headers in the responses.
+    pub fn sort(&mut self) {
+        self.headers.sort_by(|a, b| a.0.cmp(&b.0));
+    }
 }
 
 impl IntoIterator for Headers {

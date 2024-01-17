@@ -39,6 +39,7 @@ pub fn fetch_streaming_blocking(
             headers.insert(key.to_ascii_lowercase(), value.to_owned());
         }
     }
+    headers.sort(); // It reads nicer, and matches web backend.
 
     let response = PartialResponse {
         url,

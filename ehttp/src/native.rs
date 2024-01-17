@@ -50,6 +50,7 @@ pub fn fetch_blocking(request: &Request) -> crate::Result<Response> {
             headers.insert(key, value.to_owned());
         }
     }
+    headers.sort(); // It reads nicer, and matches web backend.
 
     let mut reader = resp.into_reader();
     let mut bytes = vec![];
