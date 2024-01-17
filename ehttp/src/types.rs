@@ -37,7 +37,7 @@ impl Headers {
 
     /// Get the value of the first header with the given key.
     ///
-    /// The lookup is case-insentive.
+    /// The lookup is case-insensitive.
     pub fn get(&self, key: &str) -> Option<&str> {
         let key = key.to_string().to_lowercase();
         self.headers
@@ -48,7 +48,7 @@ impl Headers {
 
     /// Get all the values that match the given key.
     ///
-    /// The lookup is case-insentive.
+    /// The lookup is case-insensitive.
     pub fn get_all(&self, key: &str) -> impl Iterator<Item = &str> {
         let key = key.to_string().to_lowercase();
         self.headers
