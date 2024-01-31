@@ -46,8 +46,7 @@ wasm-bindgen-futures = "0.4"
 futures-util = { version = "0.3", optional = true }
 wasm-streams = { version = "0.4", optional = true }
 
-
-[dependencies.web-sys]
+[target.'cfg(target_arch = "wasm32")'.dependencies.web-sys]
 version = "0.3.52"
 features = [
   "AbortSignal",
