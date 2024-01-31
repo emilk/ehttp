@@ -10,8 +10,6 @@
 //! let request = ehttp::Request::multipart(
 //!     url,
 //!     MultipartBuilder::new()
-//!         .add_file("image", "/home/user/image.png")
-//!         .unwrap()
 //!         .add_text("label", "lorem ipsum")
 //!         .add_stream(
 //!             &mut Cursor::new(vec![0, 0, 0, 0]),
@@ -20,8 +18,7 @@
 //!             None,
 //!         )
 //!         .unwrap(),
-//! )
-//! .unwrap();
+//! );
 //! ehttp::fetch(request, |result| {});
 //! ```
 //! Taken from ureq_multipart 1.1.1
