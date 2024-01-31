@@ -158,8 +158,6 @@ impl Request {
     /// let request = ehttp::Request::multipart(
     ///     url,
     ///     MultipartBuilder::new()
-    ///         .add_file("image", "/home/user/image.png")
-    ///         .unwrap()
     ///         .add_text("label", "lorem ipsum")
     ///         .add_stream(
     ///             &mut Cursor::new(vec![0, 0, 0, 0]),
@@ -177,7 +175,7 @@ impl Request {
             method: "POST".to_string(),
             url: url.to_string(),
             body: data,
-            headers: Headers::new(&[("Accept", "*/*"), ("Content-Type", &*content_type)]),
+            headers: Headers::new(&[("Accept", "*/*"), ("Content-Type", content_type.as_str())]),
         }
     }
 
