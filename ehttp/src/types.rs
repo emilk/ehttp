@@ -1,3 +1,9 @@
+#[cfg(feature = "json")]
+use serde::Serialize;
+
+#[cfg(feature = "multipart")]
+use crate::multipart::MultipartBuilder;
+
 /// Headers in a [`Request`] or [`Response`].
 ///
 /// Note that the same header key can appear twice.
@@ -138,6 +144,54 @@ impl Request {
                 ("Content-Type", "text/plain; charset=utf-8"),
             ]),
         }
+    }
+
+    /// Multipart HTTP for both native and WASM.
+    ///
+    /// Requires the `multipart` feature to be enabled.
+    ///
+    /// Example:
+    /// ```
+    /// use std::io::Cursor;
+    /// use ehttp::multipart::MultipartBuilder;
+    /// let url = "https://www.example.com";
+    /// let request = ehttp::Request::multipart(
+    ///     url,
+    ///     MultipartBuilder::new()
+    ///         .add_text("label", "lorem ipsum")
+    ///         .add_stream(
+    ///             &mut Cursor::new(vec![0, 0, 0, 0]),
+    ///             "4_empty_bytes",
+    ///             Some("4_empty_bytes.png"),
+    ///             None,
+    ///         )
+    ///         .unwrap(),
+    /// );
+    /// ehttp::fetch(request, |result| {});
+    #[cfg(feature = "multipart")]
+    pub fn multipart(url: impl ToString, builder: MultipartBuilder) -> Self {
+        let (content_type, data) = builder.finish();
+        Self {
+            method: "POST".to_string(),
+            url: url.to_string(),
+            body: data,
+            headers: Headers::new(&[("Accept", "*/*"), ("Content-Type", content_type.as_str())]),
+        }
+    }
+
+    #[cfg(feature = "json")]
+    /// Create a `POST` request with the given url and json body.
+    #[allow(clippy::needless_pass_by_value)]
+    pub fn json<T>(url: impl ToString, body: &T) -> serde_json::error::Result<Self>
+    where
+        T: ?Sized + Serialize,
+    {
+        Ok(Self {
+            method: "POST".to_owned(),
+            url: url.to_string(),
+            body: serde_json::to_string(body)?.into_bytes(),
+            headers: Headers::new(&[("Accept", "*/*"), ("Content-Type", "application/json")]),
+        })
     }
 }
 

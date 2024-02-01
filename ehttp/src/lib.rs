@@ -88,6 +88,9 @@ pub use web::spawn_future;
 #[cfg(feature = "streaming")]
 pub mod streaming;
 
+#[cfg(feature = "multipart")]
+pub mod multipart;
+
 #[deprecated = "Use ehttp::Headers::new"]
 pub fn headers(headers: &[(&str, &str)]) -> Headers {
     Headers::new(headers)

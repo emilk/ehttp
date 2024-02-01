@@ -17,18 +17,33 @@ include = ["../LICENSE-APACHE", "../LICENSE-MIT", "**/*.rs", "Cargo.toml"]
 all-features = true
 
 [features]
-"default" = []
+default = []
 
 ## Support `fetch_async` on native
-"native-async" = ["async-channel"]
+native-async = ["async-channel"]
 
 ## Support streaming fetch
 streaming = ["dep:wasm-streams", "dep:futures-util"]
+
+## Support json fetch
+json = ["dep:serde", "dep:serde_json"]
+
+## Support multipart fetch
+multipart = ["dep:getrandom", "dep:mime", "dep:mime_guess", "dep:rand" ]
 
 [lib]
 
 [dependencies]
 document-features = "0.2"
+
+# Multipart request
+mime = { version = "0.3", optional = true }
+mime_guess = { version = "2.0", optional = true }
+rand = { version = "0.8.5", optional = true }
+
+# Json request
+serde = { version = "1.0", optional = true }
+serde_json = { version = "1.0", optional = true }
 
 # For compiling natively:
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
@@ -41,6 +56,9 @@ async-channel = { version = "2.0", optional = true }
 js-sys = "0.3"
 wasm-bindgen = "0.2.89"
 wasm-bindgen-futures = "0.4"
+
+# Multipart request
+getrandom = { version = "0.2.10", features = ["js"], optional = true }
 
 # Streaming response
 futures-util = { version = "0.3", optional = true }
