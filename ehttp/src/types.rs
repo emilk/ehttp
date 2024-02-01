@@ -222,6 +222,12 @@ impl Response {
         std::str::from_utf8(&self.bytes).ok()
     }
 
+    #[cfg(feature = "json")]
+    /// Convenience for getting json body
+    pub fn json<T: serde::de::DeserializeOwned>(&self) -> serde_json::Result<T> {
+        serde_json::from_slice(self.bytes.as_slice())
+    }
+
     /// Convenience for getting the `content-type` header.
     pub fn content_type(&self) -> Option<&str> {
         self.headers.get("content-type")
