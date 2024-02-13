@@ -127,7 +127,7 @@ impl From<Mode> for web_sys::RequestMode {
 }
 
 /// A simple HTTP request.
-#[derive(Default, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub struct Request {
     /// "GET", "POST", …
     pub method: String,
