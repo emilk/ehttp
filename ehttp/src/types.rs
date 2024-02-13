@@ -94,13 +94,20 @@ impl<'h> IntoIterator for &'h Headers {
 // ----------------------------------------------------------------------------
 
 /// Determine if cross-origin requests lead to valid responses.
+/// Based on [Mozilla Docs](https://developer.mozilla.org/en-US/docs/Web/API/Request/mode)
 #[cfg(target_arch = "wasm32")]
 #[derive(Default, Clone, Copy, Debug)]
 pub enum Mode {
+    /// If a request is made to another origin with this mode set, the result is an error.
     SameOrigin = 0,
+    /// The request will not include the Origin header in a request. 
+    /// The server's response will be opaque, meaning that JavaScript code cannot access its contents
     NoCors = 1,
+    /// Includes an Origin header in the request and expects the server to respond with an 
+    /// "Access-Control-Allow-Origin" header that indicates whether the request is allowed.
     #[default]
     Cors = 2,
+    /// A mode for supporting navigation
     Navigate = 3,
 }
 
