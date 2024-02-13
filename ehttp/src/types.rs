@@ -145,7 +145,8 @@ impl Request {
             url: url.to_string(),
             body: vec![],
             headers: Headers::new(&[("Accept", "*/*")]),
-            ..Default::default()
+            #[cfg(target_arch = "wasm32")]
+            mode: Mode::default()
         }
     }
 
@@ -157,7 +158,8 @@ impl Request {
             url: url.to_string(),
             body: vec![],
             headers: Headers::new(&[("Accept", "*/*")]),
-            ..Default::default()
+            #[cfg(target_arch = "wasm32")]
+            mode: Mode::default()
         }
     }
 
@@ -172,7 +174,8 @@ impl Request {
                 ("Accept", "*/*"),
                 ("Content-Type", "text/plain; charset=utf-8"),
             ]),
-            ..Default::default()
+            #[cfg(target_arch = "wasm32")]
+            mode: Mode::default()
         }
     }
 
@@ -206,7 +209,8 @@ impl Request {
             url: url.to_string(),
             body: data,
             headers: Headers::new(&[("Accept", "*/*"), ("Content-Type", content_type.as_str())]),
-            ..Default::default()
+            #[cfg(target_arch = "wasm32")]
+            mode: Mode::default()
         }
     }
 
@@ -222,7 +226,8 @@ impl Request {
             url: url.to_string(),
             body: serde_json::to_string(body)?.into_bytes(),
             headers: Headers::new(&[("Accept", "*/*"), ("Content-Type", "application/json")]),
-            ..Default::default()
+            #[cfg(target_arch = "wasm32")]
+            mode: Mode::default()
         })
     }
 }
