@@ -93,8 +93,31 @@ impl<'h> IntoIterator for &'h Headers {
 
 // ----------------------------------------------------------------------------
 
+/// Determine if cross-origin requests lead to valid responses.
+#[cfg(target_arch = "wasm32")]
+#[derive(Default, Clone, Copy, Debug)]
+pub enum Mode {
+    SameOrigin = 0,
+    NoCors = 1,
+    #[default]
+    Cors = 2,
+    Navigate = 3,
+}
+
+#[cfg(target_arch = "wasm32")]
+impl From<Mode> for web_sys::RequestMode {
+    fn from(mode: Mode) -> Self {
+        match mode {
+            Mode::SameOrigin => web_sys::RequestMode::SameOrigin,
+            Mode::NoCors => web_sys::RequestMode::NoCors,
+            Mode::Cors => web_sys::RequestMode::Cors,
+            Mode::Navigate => web_sys::RequestMode::Navigate,
+        }
+    }
+}
+
 /// A simple HTTP request.
-#[derive(Clone, Debug)]
+#[derive(Default, Clone, Debug)]
 pub struct Request {
     /// "GET", "POST", …
     pub method: String,
@@ -107,6 +130,10 @@ pub struct Request {
 
     /// ("Accept", "*/*"), …
     pub headers: Headers,
+
+    /// Request mode used on fetch. Only available on wasm builds
+    #[cfg(target_arch = "wasm32")]
+    pub mode: Mode,
 }
 
 impl Request {
@@ -118,6 +145,7 @@ impl Request {
             url: url.to_string(),
             body: vec![],
             headers: Headers::new(&[("Accept", "*/*")]),
+            ..Default::default()
         }
     }
 
@@ -129,6 +157,7 @@ impl Request {
             url: url.to_string(),
             body: vec![],
             headers: Headers::new(&[("Accept", "*/*")]),
+            ..Default::default()
         }
     }
 
@@ -143,6 +172,7 @@ impl Request {
                 ("Accept", "*/*"),
                 ("Content-Type", "text/plain; charset=utf-8"),
             ]),
+            ..Default::default()
         }
     }
 
@@ -176,6 +206,7 @@ impl Request {
             url: url.to_string(),
             body: data,
             headers: Headers::new(&[("Accept", "*/*"), ("Content-Type", content_type.as_str())]),
+            ..Default::default()
         }
     }
 
@@ -191,6 +222,7 @@ impl Request {
             url: url.to_string(),
             body: serde_json::to_string(body)?.into_bytes(),
             headers: Headers::new(&[("Accept", "*/*"), ("Content-Type", "application/json")]),
+            ..Default::default()
         })
     }
 }
