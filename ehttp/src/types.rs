@@ -94,7 +94,7 @@ impl<'h> IntoIterator for &'h Headers {
 // ----------------------------------------------------------------------------
 
 /// Determine if cross-origin requests lead to valid responses.
-/// Based on [Mozilla Docs](https://developer.mozilla.org/en-US/docs/Web/API/Request/mode)
+/// Based on <https://developer.mozilla.org/en-US/docs/Web/API/Request/mode>
 #[cfg(target_arch = "wasm32")]
 #[derive(Default, Clone, Copy, Debug)]
 pub enum Mode {
