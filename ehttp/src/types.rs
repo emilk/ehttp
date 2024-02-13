@@ -93,6 +93,39 @@ impl<'h> IntoIterator for &'h Headers {
 
 // ----------------------------------------------------------------------------
 
+/// Determine if cross-origin requests lead to valid responses.
+/// Based on <https://developer.mozilla.org/en-US/docs/Web/API/Request/mode>
+#[cfg(target_arch = "wasm32")]
+#[derive(Default, Clone, Copy, Debug)]
+pub enum Mode {
+    /// If a request is made to another origin with this mode set, the result is an error.
+    SameOrigin = 0,
+
+    /// The request will not include the Origin header in a request.
+    /// The server's response will be opaque, meaning that JavaScript code cannot access its contents
+    NoCors = 1,
+
+    /// Includes an Origin header in the request and expects the server to respond with an
+    /// "Access-Control-Allow-Origin" header that indicates whether the request is allowed.
+    #[default]
+    Cors = 2,
+
+    /// A mode for supporting navigation
+    Navigate = 3,
+}
+
+#[cfg(target_arch = "wasm32")]
+impl From<Mode> for web_sys::RequestMode {
+    fn from(mode: Mode) -> Self {
+        match mode {
+            Mode::SameOrigin => web_sys::RequestMode::SameOrigin,
+            Mode::NoCors => web_sys::RequestMode::NoCors,
+            Mode::Cors => web_sys::RequestMode::Cors,
+            Mode::Navigate => web_sys::RequestMode::Navigate,
+        }
+    }
+}
+
 /// A simple HTTP request.
 #[derive(Clone, Debug)]
 pub struct Request {
@@ -107,6 +140,10 @@ pub struct Request {
 
     /// ("Accept", "*/*"), …
     pub headers: Headers,
+
+    /// Request mode used on fetch. Only available on wasm builds
+    #[cfg(target_arch = "wasm32")]
+    pub mode: Mode,
 }
 
 impl Request {
@@ -118,6 +155,8 @@ impl Request {
             url: url.to_string(),
             body: vec![],
             headers: Headers::new(&[("Accept", "*/*")]),
+            #[cfg(target_arch = "wasm32")]
+            mode: Mode::default(),
         }
     }
 
@@ -129,6 +168,8 @@ impl Request {
             url: url.to_string(),
             body: vec![],
             headers: Headers::new(&[("Accept", "*/*")]),
+            #[cfg(target_arch = "wasm32")]
+            mode: Mode::default(),
         }
     }
 
@@ -143,6 +184,8 @@ impl Request {
                 ("Accept", "*/*"),
                 ("Content-Type", "text/plain; charset=utf-8"),
             ]),
+            #[cfg(target_arch = "wasm32")]
+            mode: Mode::default(),
         }
     }
 
@@ -176,6 +219,8 @@ impl Request {
             url: url.to_string(),
             body: data,
             headers: Headers::new(&[("Accept", "*/*"), ("Content-Type", content_type.as_str())]),
+            #[cfg(target_arch = "wasm32")]
+            mode: Mode::default(),
         }
     }
 
@@ -191,6 +236,8 @@ impl Request {
             url: url.to_string(),
             body: serde_json::to_string(body)?.into_bytes(),
             headers: Headers::new(&[("Accept", "*/*"), ("Content-Type", "application/json")]),
+            #[cfg(target_arch = "wasm32")]
+            mode: Mode::default(),
         })
     }
 }
