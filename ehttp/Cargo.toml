@@ -1,6 +1,6 @@
 [package]
 name = "ehttp"
-version = "0.4.1"
+version = "0.5.0"
 authors = ["Emil Ernerfeldt <emil.ernerfeldt@gmail.com>"]
 description = "Minimal HTTP client for both native and WASM"
 edition = "2018"
@@ -16,8 +16,17 @@ include = ["../LICENSE-APACHE", "../LICENSE-MIT", "**/*.rs", "Cargo.toml"]
 [package.metadata.docs.rs]
 all-features = true
 
+[lib]
+
+
 [features]
 default = []
+
+## Support json fetch
+json = ["dep:serde", "dep:serde_json"]
+
+## Support multipart fetch
+multipart = ["dep:getrandom", "dep:mime", "dep:mime_guess", "dep:rand"]
 
 ## Support `fetch_async` on native
 native-async = ["async-channel"]
@@ -25,13 +34,6 @@ native-async = ["async-channel"]
 ## Support streaming fetch
 streaming = ["dep:wasm-streams", "dep:futures-util"]
 
-## Support json fetch
-json = ["dep:serde", "dep:serde_json"]
-
-## Support multipart fetch
-multipart = ["dep:getrandom", "dep:mime", "dep:mime_guess", "dep:rand" ]
-
-[lib]
 
 [dependencies]
 document-features = "0.2"
@@ -64,9 +66,7 @@ getrandom = { version = "0.2.10", features = ["js"], optional = true }
 futures-util = { version = "0.3", optional = true }
 wasm-streams = { version = "0.4", optional = true }
 
-[target.'cfg(target_arch = "wasm32")'.dependencies.web-sys]
-version = "0.3.52"
-features = [
+web-sys = { version = "0.3.52", features = [
   "AbortSignal",
   "console",
   "Headers",
@@ -76,4 +76,4 @@ features = [
   "RequestMode",
   "Response",
   "Window",
-]
+] }

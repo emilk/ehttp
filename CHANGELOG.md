@@ -6,6 +6,12 @@ All notable changes to the `ehttp` crate will be documented in this file.
 ## Unreleased
 
 
+## 0.5.0 - 2024-02-16
+* Support multipart and JSON ([#47](https://github.com/emilk/ehttp/pull/47), [#49](https://github.com/emilk/ehttp/pull/49))
+* Added CORS `Mode` property to `Request` on web ([#52](https://github.com/emilk/ehttp/pull/52))
+* Don't add `web-sys` in native builds ([#48](https://github.com/emilk/ehttp/pull/48))
+
+
 ## 0.4.0 - 2024-01-17
 * Allow duplicated headers in requests and responses ([#46](https://github.com/emilk/ehttp/pull/46))
 * Support HEAD requests ([#45](https://github.com/emilk/ehttp/pull/45))
