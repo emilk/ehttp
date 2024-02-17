@@ -1,3 +1,5 @@
+//! Example application using [`eframe`].
+
 mod app;
 
 pub use app::DemoApp;
