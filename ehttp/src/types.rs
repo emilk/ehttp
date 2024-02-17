@@ -94,8 +94,8 @@ impl<'h> IntoIterator for &'h Headers {
 // ----------------------------------------------------------------------------
 
 /// Determine if cross-origin requests lead to valid responses.
+///
 /// Based on <https://developer.mozilla.org/en-US/docs/Web/API/Request/mode>
-#[cfg(target_arch = "wasm32")]
 #[derive(Default, Clone, Copy, Debug)]
 pub enum Mode {
     /// If a request is made to another origin with this mode set, the result is an error.
@@ -141,8 +141,9 @@ pub struct Request {
     /// ("Accept", "*/*"), …
     pub headers: Headers,
 
-    /// Request mode used on fetch. Only available on wasm builds
-    #[cfg(target_arch = "wasm32")]
+    /// Request mode used on fetch.
+    ///
+    /// Used on Web to control CORS.
     pub mode: Mode,
 }
 
@@ -155,7 +156,6 @@ impl Request {
             url: url.to_string(),
             body: vec![],
             headers: Headers::new(&[("Accept", "*/*")]),
-            #[cfg(target_arch = "wasm32")]
             mode: Mode::default(),
         }
     }
@@ -168,7 +168,6 @@ impl Request {
             url: url.to_string(),
             body: vec![],
             headers: Headers::new(&[("Accept", "*/*")]),
-            #[cfg(target_arch = "wasm32")]
             mode: Mode::default(),
         }
     }
@@ -184,7 +183,6 @@ impl Request {
                 ("Accept", "*/*"),
                 ("Content-Type", "text/plain; charset=utf-8"),
             ]),
-            #[cfg(target_arch = "wasm32")]
             mode: Mode::default(),
         }
     }
@@ -219,7 +217,6 @@ impl Request {
             url: url.to_string(),
             body: data,
             headers: Headers::new(&[("Accept", "*/*"), ("Content-Type", content_type.as_str())]),
-            #[cfg(target_arch = "wasm32")]
             mode: Mode::default(),
         }
     }
@@ -236,7 +233,6 @@ impl Request {
             url: url.to_string(),
             body: serde_json::to_string(body)?.into_bytes(),
             headers: Headers::new(&[("Accept", "*/*"), ("Content-Type", "application/json")]),
-            #[cfg(target_arch = "wasm32")]
             mode: Mode::default(),
         })
     }
