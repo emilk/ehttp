@@ -27,15 +27,9 @@
 use mime::Mime;
 use rand::Rng;
 
-use std::fs::File;
 use std::io::{self, Read, Write};
-use std::path::Path;
 
 const BOUNDARY_LEN: usize = 29;
-
-fn opt_filename(path: &Path) -> Option<&str> {
-    path.file_name().and_then(|filename| filename.to_str())
-}
 
 fn random_alphanumeric(len: usize) -> String {
     rand::thread_rng()
@@ -43,12 +37,6 @@ fn random_alphanumeric(len: usize) -> String {
         .take(len)
         .map(|num| num.to_string())
         .collect()
-}
-
-fn mime_filename(path: &Path) -> (Mime, Option<&str>) {
-    let content_type = mime_guess::from_path(path);
-    let filename = opt_filename(path);
-    (content_type.first_or_octet_stream(), filename)
 }
 
 #[derive(Debug)]
@@ -91,10 +79,16 @@ impl MultipartBuilder {
     /// * name file field name
     /// * path the sending file path
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn add_file<P: AsRef<Path>>(self, name: &str, path: P) -> io::Result<Self> {
+    pub fn add_file<P: AsRef<std::path::Path>>(self, name: &str, path: P) -> io::Result<Self> {
+        fn mime_filename(path: &std::path::Path) -> (Mime, Option<&str>) {
+            let content_type = mime_guess::from_path(path);
+            let filename = path.file_name().and_then(|filename| filename.to_str());
+            (content_type.first_or_octet_stream(), filename)
+        }
+
         let path = path.as_ref();
         let (content_type, filename) = mime_filename(path);
-        let mut file = File::open(path)?;
+        let mut file = std::fs::File::open(path)?;
         self.add_stream(&mut file, name, filename, Some(content_type))
     }
 
