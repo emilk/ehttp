@@ -19,6 +19,7 @@ impl Headers {
     /// let request = Request {
     ///     headers: ehttp::Headers::new(&[
     ///         ("Accept", "*/*"),
+    ///         ("User-Agent","ehttp"),
     ///         ("Content-Type", "text/plain; charset=utf-8"),
     ///     ]),
     ///     ..Request::get("https://www.example.com")
@@ -155,7 +156,10 @@ impl Request {
             method: "GET".to_owned(),
             url: url.to_string(),
             body: vec![],
-            headers: Headers::new(&[("Accept", "*/*")]),
+            headers: Headers::new(&[
+                ("Accept", "*/*"),
+                ("User-Agent","ehttp")
+            ]),
             mode: Mode::default(),
         }
     }
@@ -167,7 +171,10 @@ impl Request {
             method: "HEAD".to_owned(),
             url: url.to_string(),
             body: vec![],
-            headers: Headers::new(&[("Accept", "*/*")]),
+            headers: Headers::new(&[
+                ("Accept", "*/*"),
+                ("User-Agent","ehttp")
+            ]),
             mode: Mode::default(),
         }
     }
@@ -181,6 +188,7 @@ impl Request {
             body,
             headers: Headers::new(&[
                 ("Accept", "*/*"),
+                ("User-Agent","ehttp"),
                 ("Content-Type", "text/plain; charset=utf-8"),
             ]),
             mode: Mode::default(),
@@ -216,7 +224,11 @@ impl Request {
             method: "POST".to_string(),
             url: url.to_string(),
             body: data,
-            headers: Headers::new(&[("Accept", "*/*"), ("Content-Type", content_type.as_str())]),
+            headers: Headers::new(&[
+                ("Accept", "*/*"),
+                ("User-Agent","ehttp"),
+                ("Content-Type", content_type.as_str())
+            ]),
             mode: Mode::default(),
         }
     }
@@ -232,7 +244,11 @@ impl Request {
             method: "POST".to_owned(),
             url: url.to_string(),
             body: serde_json::to_string(body)?.into_bytes(),
-            headers: Headers::new(&[("Accept", "*/*"), ("Content-Type", "application/json")]),
+            headers: Headers::new(&[
+                ("Accept", "*/*"),
+                ("User-Agent","ehttp"),
+                ("Content-Type", "application/json")
+            ]),
             mode: Mode::default(),
         })
     }
