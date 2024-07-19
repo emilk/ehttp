@@ -4,6 +4,13 @@ use wasm_bindgen_futures::JsFuture;
 use crate::types::PartialResponse;
 use crate::{Request, Response};
 
+/// Binds the JavaScript `fetch` method for use in both Node.js (>= v18.0) and browser environments.
+#[wasm_bindgen]
+extern "C" {
+    #[wasm_bindgen(js_name = fetch)]
+    fn fetch_with_request(input: &web_sys::Request) -> js_sys::Promise;
+}
+
 /// Only available when compiling for web.
 ///
 /// NOTE: `Ok(…)` is returned on network error.
@@ -57,8 +64,7 @@ pub(crate) async fn fetch_base(request: &Request) -> Result<web_sys::Response, J
         js_request.headers().set(k, v)?;
     }
 
-    let window = web_sys::window().unwrap();
-    let response = JsFuture::from(window.fetch_with_request(&js_request)).await?;
+    let response = JsFuture::from(fetch_with_request(&js_request)).await?;
     let response: web_sys::Response = response.dyn_into()?;
 
     Ok(response)
