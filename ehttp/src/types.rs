@@ -145,6 +145,9 @@ pub struct Request {
     ///
     /// Used on Web to control CORS.
     pub mode: Mode,
+
+    pub danger_accept_invalid_hostnames: bool,
+    pub danger_accept_invalid_certs: bool,
 }
 
 impl Request {
@@ -157,6 +160,8 @@ impl Request {
             body: vec![],
             headers: Headers::new(&[("Accept", "*/*")]),
             mode: Mode::default(),
+            danger_accept_invalid_hostnames: false,
+            danger_accept_invalid_certs: false,
         }
     }
 
@@ -169,6 +174,8 @@ impl Request {
             body: vec![],
             headers: Headers::new(&[("Accept", "*/*")]),
             mode: Mode::default(),
+            danger_accept_invalid_hostnames: false,
+            danger_accept_invalid_certs: false,
         }
     }
 
@@ -184,6 +191,21 @@ impl Request {
                 ("Content-Type", "text/plain; charset=utf-8"),
             ]),
             mode: Mode::default(),
+            danger_accept_invalid_hostnames: false,
+            danger_accept_invalid_certs: false,
+        }
+    }
+
+    #[allow(clippy::needless_pass_by_value)]
+    pub fn delete(url: impl ToString) -> Self {
+        Self {
+            method: "DELETE".to_string(),
+            url: url.to_string(),
+            body: vec![],
+            headers: Headers::new(&[("Accept", "*/*")]),
+            mode: Mode::default(),
+            danger_accept_invalid_hostnames: false,
+            danger_accept_invalid_certs: false,
         }
     }
 
@@ -218,6 +240,8 @@ impl Request {
             body: data,
             headers: Headers::new(&[("Accept", "*/*"), ("Content-Type", content_type.as_str())]),
             mode: Mode::default(),
+            danger_accept_invalid_hostnames: false,
+            danger_accept_invalid_certs: false,
         }
     }
 
@@ -234,7 +258,19 @@ impl Request {
             body: serde_json::to_string(body)?.into_bytes(),
             headers: Headers::new(&[("Accept", "*/*"), ("Content-Type", "application/json")]),
             mode: Mode::default(),
+            danger_accept_invalid_hostnames: false,
+            danger_accept_invalid_certs: false,
         })
+    }
+
+    pub fn danger_accept_invalid_hostnames(mut self, accept_invalid_hostnames: bool) -> Self {
+        self.danger_accept_invalid_hostnames = accept_invalid_hostnames;
+        self
+    }
+
+    pub fn danger_accept_invalid_certs(mut self, accept_invalid_certs: bool) -> Self {
+        self.danger_accept_invalid_certs = accept_invalid_certs;
+        self
     }
 }
 

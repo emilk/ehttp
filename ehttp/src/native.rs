@@ -1,4 +1,5 @@
 use crate::{Request, Response};
+use std::sync::Arc;
 
 #[cfg(feature = "native-async")]
 use async_channel::{Receiver, Sender};
@@ -23,7 +24,18 @@ use async_channel::{Receiver, Sender};
 /// * A browser extension blocked the request (e.g. ad blocker)
 /// * …
 pub fn fetch_blocking(request: &Request) -> crate::Result<Response> {
-    let mut req = ureq::request(&request.method, &request.url);
+    let tls_connector = Arc::new(
+        native_tls::TlsConnector::builder()
+            .danger_accept_invalid_hostnames(request.danger_accept_invalid_hostnames)
+            .danger_accept_invalid_certs(request.danger_accept_invalid_certs)
+            .build()
+            .unwrap(),
+    );
+
+    let mut req = ureq::builder()
+        .tls_connector(tls_connector)
+        .build()
+        .request(&request.method, &request.url);
 
     for (k, v) in &request.headers {
         req = req.set(k, v);
