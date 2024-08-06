@@ -54,7 +54,7 @@ pub fn fetch_streaming_blocking(
 
     let mut reader = resp.into_reader();
     loop {
-        let mut buf = vec![0; 2048];
+        let mut buf = vec![0; 5120];
         match reader.read(&mut buf) {
             Ok(n) if n > 0 => {
                 // clone data from buffer and clear it
