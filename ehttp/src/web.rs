@@ -57,8 +57,16 @@ pub(crate) async fn fetch_base(request: &Request) -> Result<web_sys::Response, J
         js_request.headers().set(k, v)?;
     }
 
-    let window = web_sys::window().unwrap();
-    let response = JsFuture::from(window.fetch_with_request(&js_request)).await?;
+    // web_sys:window() is None in web worker
+    let response = match web_sys::window(){
+        Some(window) => {
+            JsFuture::from(window.fetch_with_request(&js_request)).await?
+        },
+        None => {
+            let global = js_sys::global().unchecked_into::<web_sys::WorkerGlobalScope>();
+            JsFuture::from(global.fetch_with_request(&js_request)).await?
+        }
+    };
     let response: web_sys::Response = response.dyn_into()?;
 
     Ok(response)
