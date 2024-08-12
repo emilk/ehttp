@@ -1,4 +1,5 @@
 use std::ops::ControlFlow;
+use std::sync::Arc;
 
 use crate::Request;
 
@@ -9,7 +10,18 @@ pub fn fetch_streaming_blocking(
     request: Request,
     on_data: Box<dyn Fn(crate::Result<Part>) -> ControlFlow<()> + Send>,
 ) {
-    let mut req = ureq::request(&request.method, &request.url);
+    let tls_connector = Arc::new(
+        native_tls::TlsConnector::builder()
+            .danger_accept_invalid_hostnames(request.danger_accept_invalid_hostnames)
+            .danger_accept_invalid_certs(request.danger_accept_invalid_certs)
+            .build()
+            .unwrap(),
+    );
+
+    let mut req = ureq::builder()
+        .tls_connector(tls_connector)
+        .build()
+        .request(&request.method, &request.url);
 
     for (k, v) in &request.headers {
         req = req.set(k, v);
