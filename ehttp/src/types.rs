@@ -126,6 +126,35 @@ impl From<Mode> for web_sys::RequestMode {
     }
 }
 
+// ----------------------------------------------------------------------------
+
+/// Determines whether or not the browser sends credentials with the request, as well as whether any Set-Cookie response headers are respected.
+///
+/// Based on <https://developer.mozilla.org/en-US/docs/Web/API/Request/credentials>
+#[derive(Default, Clone, Copy, Debug)]
+pub enum Credentials {
+    /// Never send credentials in the request or include credentials in the response.
+    #[default]
+    Omit = 0,
+
+    /// Only send and include credentials for same-origin requests.
+    SameOrigin = 1,
+
+    /// Always include credentials, even for cross-origin requests.
+    Include = 2,
+}
+
+#[cfg(target_arch = "wasm32")]
+impl From<Credentials> for web_sys::RequestCredentials {
+    fn from(credentials: Credentials) -> Self {
+        match credentials {
+            Credentials::Omit => web_sys::RequestCredentials::Omit,
+            Credentials::SameOrigin => web_sys::RequestCredentials::SameOrigin,
+            Credentials::Include => web_sys::RequestCredentials::Include,
+        }
+    }
+}
+
 /// A simple HTTP request.
 #[derive(Clone, Debug)]
 pub struct Request {
@@ -145,6 +174,9 @@ pub struct Request {
     ///
     /// Used on Web to control CORS.
     pub mode: Mode,
+
+    /// Credential options for fetch.
+    pub credentials: Credentials,
 }
 
 impl Request {
@@ -157,6 +189,7 @@ impl Request {
             body: vec![],
             headers: Headers::new(&[("Accept", "*/*")]),
             mode: Mode::default(),
+            credentials: Credentials::default(),
         }
     }
 
@@ -169,6 +202,7 @@ impl Request {
             body: vec![],
             headers: Headers::new(&[("Accept", "*/*")]),
             mode: Mode::default(),
+            credentials: Credentials::default(),
         }
     }
 
@@ -184,6 +218,7 @@ impl Request {
                 ("Content-Type", "text/plain; charset=utf-8"),
             ]),
             mode: Mode::default(),
+            credentials: Credentials::default(),
         }
     }
 
