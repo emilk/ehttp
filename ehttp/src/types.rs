@@ -173,11 +173,13 @@ pub struct Request {
     /// Request mode used on fetch.
     ///
     /// Used on Web to control CORS.
+    #[cfg(target_arch = "wasm32")]
     pub mode: Mode,
 
     /// Credential options for fetch.
     ///
     /// Only applies to the web backend.
+    #[cfg(target_arch = "wasm32")]
     pub credentials: Credentials,
 }
 
@@ -190,7 +192,9 @@ impl Request {
             url: url.to_string(),
             body: vec![],
             headers: Headers::new(&[("Accept", "*/*")]),
+            #[cfg(target_arch = "wasm32")]
             mode: Mode::default(),
+            #[cfg(target_arch = "wasm32")]
             credentials: Credentials::default(),
         }
     }
@@ -203,7 +207,9 @@ impl Request {
             url: url.to_string(),
             body: vec![],
             headers: Headers::new(&[("Accept", "*/*")]),
+            #[cfg(target_arch = "wasm32")]
             mode: Mode::default(),
+            #[cfg(target_arch = "wasm32")]
             credentials: Credentials::default(),
         }
     }
@@ -219,7 +225,9 @@ impl Request {
                 ("Accept", "*/*"),
                 ("Content-Type", "text/plain; charset=utf-8"),
             ]),
+            #[cfg(target_arch = "wasm32")]
             mode: Mode::default(),
+            #[cfg(target_arch = "wasm32")]
             credentials: Credentials::default(),
         }
     }
@@ -254,7 +262,9 @@ impl Request {
             url: url.to_string(),
             body: data,
             headers: Headers::new(&[("Accept", "*/*"), ("Content-Type", content_type.as_str())]),
+            #[cfg(target_arch = "wasm32")]
             mode: Mode::default(),
+            #[cfg(target_arch = "wasm32")]
             credentials: Credentials::default(),
         }
     }
@@ -271,7 +281,9 @@ impl Request {
             url: url.to_string(),
             body: serde_json::to_string(body)?.into_bytes(),
             headers: Headers::new(&[("Accept", "*/*"), ("Content-Type", "application/json")]),
+            #[cfg(target_arch = "wasm32")]
             mode: Mode::default(),
+            #[cfg(target_arch = "wasm32")]
             credentials: Credentials::default(),
         })
     }
