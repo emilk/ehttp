@@ -176,6 +176,8 @@ pub struct Request {
     pub mode: Mode,
 
     /// Credential options for fetch.
+    ///
+    /// Only applies to the web backend.
     pub credentials: Credentials,
 }
 
