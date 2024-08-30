@@ -255,6 +255,7 @@ impl Request {
             body: data,
             headers: Headers::new(&[("Accept", "*/*"), ("Content-Type", content_type.as_str())]),
             mode: Mode::default(),
+            credentials: Credentials::default(),
         }
     }
 
@@ -271,6 +272,7 @@ impl Request {
             body: serde_json::to_string(body)?.into_bytes(),
             headers: Headers::new(&[("Accept", "*/*"), ("Content-Type", "application/json")]),
             mode: Mode::default(),
+            credentials: Credentials::default(),
         })
     }
 }
