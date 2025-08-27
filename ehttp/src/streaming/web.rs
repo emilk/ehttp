@@ -1,5 +1,3 @@
-use std::ops::ControlFlow;
-
 use futures_util::Stream;
 use futures_util::StreamExt;
 use wasm_bindgen::prelude::*;
@@ -7,7 +5,7 @@ use wasm_bindgen::prelude::*;
 use crate::web::{fetch_base, get_response_base, spawn_future, string_from_fetch_error};
 use crate::Request;
 
-use super::types::Part;
+use super::types::{Flow, Part};
 
 /// Only available when compiling for web.
 ///
@@ -46,9 +44,24 @@ async fn fetch_jsvalue_stream(
     )
 }
 
+async fn sleep(duration: std::time::Duration) {
+    // Ignore all errors
+
+    let millis = duration.as_millis() as _;
+    let mut cb = |resolve: js_sys::Function, _reject: js_sys::Function| {
+        if let Some(window) = web_sys::window() {
+            window
+                .set_timeout_with_callback_and_timeout_and_arguments_0(&resolve, millis)
+                .ok();
+        }
+    };
+    let p = js_sys::Promise::new(&mut cb);
+    wasm_bindgen_futures::JsFuture::from(p).await.ok();
+}
+
 pub(crate) fn fetch_streaming(
     request: Request,
-    on_data: Box<dyn Fn(crate::Result<Part>) -> ControlFlow<()> + Send>,
+    on_data: Box<dyn Fn(crate::Result<Part>) -> Flow + Send>,
 ) {
     spawn_future(async move {
         let mut stream = match fetch_jsvalue_stream(&request).await {
@@ -61,11 +74,11 @@ pub(crate) fn fetch_streaming(
 
         while let Some(chunk) = stream.next().await {
             match chunk {
-                Ok(chunk) => {
-                    if on_data(Ok(chunk)).is_break() {
-                        return;
-                    }
-                }
+                Ok(chunk) => match on_data(Ok(chunk)) {
+                    Flow::Break => return,
+                    Flow::Wait(duration) => sleep(duration).await,
+                    Flow::Continue => {}
+                },
                 Err(e) => {
                     on_data(Err(string_from_fetch_error(e)));
                     return;

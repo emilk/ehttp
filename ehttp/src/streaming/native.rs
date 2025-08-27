@@ -1,13 +1,13 @@
-use std::ops::ControlFlow;
+use std::{io::Read, thread};
 
 use crate::Request;
 
-use super::Part;
+use super::{types::Flow, Part};
 use crate::types::PartialResponse;
 
 pub fn fetch_streaming_blocking(
     request: Request,
-    on_data: Box<dyn Fn(crate::Result<Part>) -> ControlFlow<()> + Send>,
+    on_data: Box<dyn Fn(crate::Result<Part>) -> Flow + Send>,
 ) {
     let mut req = ureq::request(&request.method, &request.url);
 
@@ -48,9 +48,11 @@ pub fn fetch_streaming_blocking(
         status_text,
         headers,
     };
-    if on_data(Ok(Part::Response(response))).is_break() {
-        return;
-    };
+    match on_data(Ok(Part::Response(response))) {
+        Flow::Break => return,
+        Flow::Wait(duration) => thread::sleep(duration),
+        Flow::Continue => {}
+    }
 
     let mut reader = resp.into_reader();
     loop {
@@ -59,9 +61,11 @@ pub fn fetch_streaming_blocking(
             Ok(n) if n > 0 => {
                 // clone data from buffer and clear it
                 let chunk = buf[..n].to_vec();
-                if on_data(Ok(Part::Chunk(chunk))).is_break() {
-                    return;
-                };
+                match on_data(Ok(Part::Chunk(chunk))) {
+                    Flow::Break => return,
+                    Flow::Wait(duration) => thread::sleep(duration),
+                    Flow::Continue => {}
+                }
             }
             Ok(_) => {
                 on_data(Ok(Part::Chunk(vec![])));
@@ -83,7 +87,7 @@ pub fn fetch_streaming_blocking(
 
 pub(crate) fn fetch_streaming(
     request: Request,
-    on_data: Box<dyn Fn(crate::Result<Part>) -> ControlFlow<()> + Send>,
+    on_data: Box<dyn Fn(crate::Result<Part>) -> Flow + Send>,
 ) {
     std::thread::Builder::new()
         .name("ehttp".to_owned())
