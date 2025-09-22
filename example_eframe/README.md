@@ -10,5 +10,5 @@ cargo run --release -p example_eframe
 ``` sh
 ./setup_web.sh
 ./start_server.sh &
-./build_web.sh --fast --open
+./build_web.sh --open
 ```
