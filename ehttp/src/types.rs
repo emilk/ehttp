@@ -249,6 +249,11 @@ impl Request {
             timeout: Some(Self::DEFAULT_TIMEOUT),
         })
     }
+
+    pub fn with_timeout(mut self, timeout: Option<Duration>) -> Self {
+        self.timeout = timeout;
+        self
+    }
 }
 
 /// Response from a completed HTTP request.
