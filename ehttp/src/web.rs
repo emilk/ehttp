@@ -17,6 +17,7 @@ extern "C" {
 ///
 /// `Err` can happen for a number of reasons:
 /// * No internet connection
+/// * Connection timed out
 /// * DNS resolution failed
 /// * Firewall or proxy blocked the request
 /// * Server is not reachable
