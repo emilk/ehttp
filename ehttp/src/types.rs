@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 #[cfg(feature = "json")]
 use serde::Serialize;
 
@@ -145,9 +147,14 @@ pub struct Request {
     ///
     /// Used on Web to control CORS.
     pub mode: Mode,
+
+    /// Cancel the request if it doesn't complete fast enough.
+    pub timeout: Option<Duration>,
 }
 
 impl Request {
+    pub const DEFAULT_TIMEOUT: Duration = Duration::from_secs(30);
+
     /// Create a `GET` request with the given url.
     #[allow(clippy::needless_pass_by_value)]
     pub fn get(url: impl ToString) -> Self {
@@ -157,6 +164,7 @@ impl Request {
             body: vec![],
             headers: Headers::new(&[("Accept", "*/*")]),
             mode: Mode::default(),
+            timeout: Some(Self::DEFAULT_TIMEOUT),
         }
     }
 
@@ -169,6 +177,7 @@ impl Request {
             body: vec![],
             headers: Headers::new(&[("Accept", "*/*")]),
             mode: Mode::default(),
+            timeout: Some(Self::DEFAULT_TIMEOUT),
         }
     }
 
@@ -184,6 +193,7 @@ impl Request {
                 ("Content-Type", "text/plain; charset=utf-8"),
             ]),
             mode: Mode::default(),
+            timeout: Some(Self::DEFAULT_TIMEOUT),
         }
     }
 
@@ -209,6 +219,7 @@ impl Request {
     ///         .unwrap(),
     /// );
     /// ehttp::fetch(request, |result| {});
+    /// ```
     #[cfg(feature = "multipart")]
     pub fn multipart(url: impl ToString, builder: MultipartBuilder) -> Self {
         let (content_type, data) = builder.finish();
@@ -218,6 +229,7 @@ impl Request {
             body: data,
             headers: Headers::new(&[("Accept", "*/*"), ("Content-Type", content_type.as_str())]),
             mode: Mode::default(),
+            timeout: Some(Self::DEFAULT_TIMEOUT),
         }
     }
 
@@ -234,6 +246,7 @@ impl Request {
             body: serde_json::to_string(body)?.into_bytes(),
             headers: Headers::new(&[("Accept", "*/*"), ("Content-Type", "application/json")]),
             mode: Mode::default(),
+            timeout: Some(Self::DEFAULT_TIMEOUT),
         })
     }
 }

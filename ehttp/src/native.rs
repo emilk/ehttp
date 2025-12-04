@@ -13,6 +13,7 @@ use async_channel::{Receiver, Sender};
 ///
 /// `Err` can happen for a number of reasons:
 /// * No internet connection
+/// * Connection timed out
 /// * DNS resolution failed
 /// * Firewall or proxy blocked the request
 /// * Server is not reachable
@@ -24,6 +25,10 @@ use async_channel::{Receiver, Sender};
 /// * …
 pub fn fetch_blocking(request: &Request) -> crate::Result<Response> {
     let mut req = ureq::request(&request.method, &request.url);
+
+    if let Some(timeout) = request.timeout {
+        req = req.timeout(timeout);
+    }
 
     for (k, v) in &request.headers {
         req = req.set(k, v);
