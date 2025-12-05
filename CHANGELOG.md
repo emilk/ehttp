@@ -6,6 +6,12 @@ All notable changes to the `ehttp` crate will be documented in this file.
 ## Unreleased
 
 
+## 0.6.0 - 2025-12-05
+* Support configurable timeouts ([#71](https://github.com/emilk/ehttp/pull/71))
+* Add Node.js support ([#58](https://github.com/emilk/ehttp/pull/58))
+* Include `mode` on native too ([#54](https://github.com/emilk/ehttp/pull/54))
+
+
 ## 0.5.0 - 2024-02-16
 * Support multipart and JSON ([#47](https://github.com/emilk/ehttp/pull/47), [#49](https://github.com/emilk/ehttp/pull/49))
 * Added CORS `Mode` property to `Request` on web ([#52](https://github.com/emilk/ehttp/pull/52))

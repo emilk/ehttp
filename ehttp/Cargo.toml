@@ -1,6 +1,6 @@
 [package]
 name = "ehttp"
-version = "0.5.0"
+version = "0.6.0"
 authors = ["Emil Ernerfeldt <emil.ernerfeldt@gmail.com>"]
 description = "Minimal HTTP client for both native and WASM"
 edition = "2018"
