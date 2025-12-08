@@ -278,6 +278,23 @@ impl Request {
         })
     }
 
+    #[cfg(feature = "json")]
+    /// Create a 'PUT' request with the given url and json body.
+    #[allow(clippy::needless_pass_by_value)]
+    pub fn put_json<T>(url: impl ToString, body: &T) -> serde_json::error::Result<Self>
+    where
+        T: ?Sized + Serialize,
+    {
+        Ok(Self {
+            method: "PUT".to_owned(),
+            url: url.to_string(),
+            body: serde_json::to_string(body)?.into_bytes(),
+            headers: Headers::new(&[("Accept", "*/*"), ("Content-Type", "application/json")]),
+            mode: Mode::default(),
+            timeout: Some(Self::DEFAULT_TIMEOUT),
+        })
+    }
+
     pub fn with_timeout(mut self, timeout: Option<Duration>) -> Self {
         self.timeout = timeout;
         self
