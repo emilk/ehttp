@@ -197,6 +197,34 @@ impl Request {
         }
     }
 
+    /// Create a 'PUT' request with the given url and body.
+    #[allow(clippy::needless_pass_by_value)]
+    pub fn put(url: impl ToString, body: Vec<u8>) -> Self {
+        Self {
+            method: "PUT".to_owned(),
+            url: url.to_string(),
+            body,
+            headers: Headers::new(&[
+                ("Accept", "*/*"),
+                ("Content-Type", "text/plain; charset=utf-8"),
+            ]),
+            mode: Mode::default(),
+            timeout: Some(Self::DEFAULT_TIMEOUT),
+        }
+    }
+
+    /// Create a 'DELETE' request with the given url.
+    pub fn delete(url: &str) -> Self {
+        Self {
+            method: "DELETE".to_owned(),
+            url: url.to_string(),
+            body: vec![],
+            headers: Headers::new(&[("Accept", "*/*")]),
+            mode: Mode::default(),
+            timeout: Some(Self::DEFAULT_TIMEOUT),
+        }
+    }
+
     /// Multipart HTTP for both native and WASM.
     ///
     /// Requires the `multipart` feature to be enabled.
@@ -242,6 +270,23 @@ impl Request {
     {
         Ok(Self {
             method: "POST".to_owned(),
+            url: url.to_string(),
+            body: serde_json::to_string(body)?.into_bytes(),
+            headers: Headers::new(&[("Accept", "*/*"), ("Content-Type", "application/json")]),
+            mode: Mode::default(),
+            timeout: Some(Self::DEFAULT_TIMEOUT),
+        })
+    }
+
+    #[cfg(feature = "json")]
+    /// Create a 'PUT' request with the given url and json body.
+    #[allow(clippy::needless_pass_by_value)]
+    pub fn put_json<T>(url: impl ToString, body: &T) -> serde_json::error::Result<Self>
+    where
+        T: ?Sized + Serialize,
+    {
+        Ok(Self {
+            method: "PUT".to_owned(),
             url: url.to_string(),
             body: serde_json::to_string(body)?.into_bytes(),
             headers: Headers::new(&[("Accept", "*/*"), ("Content-Type", "application/json")]),
