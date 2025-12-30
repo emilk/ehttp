@@ -9,35 +9,85 @@ pub fn fetch_streaming_blocking(
     request: Request,
     on_data: Box<dyn Fn(crate::Result<Part>) -> ControlFlow<()> + Send>,
 ) {
-    let mut req = ureq::request(&request.method, &request.url);
+    let resp = match request.method.as_str() {
+        "POST" | "PATCH" | "PUT" => {
+            let mut req = match request.method.as_str() {
+                "POST" => ureq::post(&request.url),
+                "PATCH" => ureq::patch(&request.url),
+                "PUT" => ureq::put(&request.url),
+                _ => unreachable!(),
+            };
 
-    for (k, v) in &request.headers {
-        req = req.set(k, v);
-    }
+            for (k, v) in &request.headers {
+                req = req.header(k, v);
+            }
 
-    let resp = if request.body.is_empty() {
-        req.call()
-    } else {
-        req.send_bytes(&request.body)
-    };
+            req = req.config().http_status_as_error(false).build();
 
-    let (ok, resp) = match resp {
-        Ok(resp) => (true, resp),
-        Err(ureq::Error::Status(_, resp)) => (false, resp), // Still read the body on e.g. 404
-        Err(ureq::Error::Transport(err)) => {
-            on_data(Err(err.to_string()));
+            if request.body.is_empty() {
+                req.send_empty()
+            } else {
+                req.send(&request.body)
+            }
+        }
+        "GET" | "DELETE" | "CONNECT" | "HEAD" | "OPTIONS" | "TRACE" => {
+            let mut req = match request.method.as_str() {
+                "GET" => ureq::get(&request.url),
+                "DELETE" => ureq::delete(&request.url),
+                "CONNECT" => ureq::connect(&request.url),
+                "HEAD" => ureq::head(&request.url),
+                "OPTIONS" => ureq::options(&request.url),
+                "TRACE" => ureq::trace(&request.url),
+                _ => unreachable!(),
+            };
+
+            req = req.config().http_status_as_error(false).build();
+
+            for (k, v) in &request.headers {
+                req = req.header(k, v);
+            }
+
+            if request.body.is_empty() {
+                req.call()
+            } else {
+                req.force_send_body().send(&request.body)
+            }
+        }
+        _ => {
+            on_data(Err(String::from("Failed to parse request method")));
             return;
         }
     };
 
-    let url = resp.get_url().to_owned();
-    let status = resp.status();
-    let status_text = resp.status_text().to_owned();
-    let mut headers = crate::Headers::default();
-    for key in &resp.headers_names() {
-        if let Some(value) = resp.header(key) {
-            headers.insert(key.to_ascii_lowercase(), value.to_owned());
+    let mut resp = match resp {
+        Ok(t) => t,
+        Err(e) => {
+            on_data(Err(e.to_string()));
+            return;
         }
+    };
+
+    let ok = resp.status().is_success();
+    use ureq::ResponseExt as _;
+    let url = resp.get_uri().to_string();
+    let status = resp.status().as_u16();
+    let status_text = resp
+        .status()
+        .canonical_reason()
+        .unwrap_or("Error")
+        .to_string();
+    let mut headers = crate::Headers::default();
+    for (k, v) in resp.headers().iter() {
+        headers.insert(
+            k,
+            match v.to_str() {
+                Ok(t) => t,
+                Err(e) => {
+                    on_data(Err(e.to_string()));
+                    break;
+                }
+            },
+        );
     }
     headers.sort(); // It reads nicer, and matches web backend.
 
@@ -52,9 +102,10 @@ pub fn fetch_streaming_blocking(
         return;
     };
 
-    let mut reader = resp.into_reader();
+    let mut reader = resp.body_mut().as_reader();
     loop {
         let mut buf = vec![0; 2048];
+        use std::io::Read;
         match reader.read(&mut buf) {
             Ok(n) if n > 0 => {
                 // clone data from buffer and clear it
