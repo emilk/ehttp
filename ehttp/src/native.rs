@@ -1,4 +1,4 @@
-use crate::{Request, Response};
+use crate::{Method, Request, Response};
 
 #[cfg(feature = "native-async")]
 use async_channel::{Receiver, Sender};
@@ -24,59 +24,57 @@ use async_channel::{Receiver, Sender};
 /// * A browser extension blocked the request (e.g. ad blocker)
 /// * …
 pub fn fetch_blocking(request: &Request) -> crate::Result<Response> {
-    let resp = match request.method.as_str() {
-        "POST" | "PATCH" | "PUT" => {
-            let mut req = match request.method.as_str() {
-                "POST" => ureq::post(&request.url),
-                "PATCH" => ureq::patch(&request.url),
-                "PUT" => ureq::put(&request.url),
-                _ => unreachable!(),
-            };
+    let resp = if request.method.contains_body() {
+        let mut req = match request.method {
+            Method::POST => ureq::post(&request.url),
+            Method::PATCH => ureq::patch(&request.url),
+            Method::PUT => ureq::put(&request.url),
+            // These three are the only requests which contain a body, no other requests will be matched
+            _ => unreachable!(),
+        };
 
-            for (k, v) in &request.headers {
-                req = req.header(k, v);
-            }
-
-            req = req
-                .config()
-                .timeout_recv_body(request.timeout)
-                .http_status_as_error(false)
-                .build();
-
-            if request.body.is_empty() {
-                req.send_empty()
-            } else {
-                req.send(&request.body)
-            }
+        for (k, v) in &request.headers {
+            req = req.header(k, v);
         }
-        "GET" | "DELETE" | "CONNECT" | "HEAD" | "OPTIONS" | "TRACE" => {
-            let mut req = match request.method.as_str() {
-                "GET" => ureq::get(&request.url),
-                "DELETE" => ureq::delete(&request.url),
-                "CONNECT" => ureq::connect(&request.url),
-                "HEAD" => ureq::head(&request.url),
-                "OPTIONS" => ureq::options(&request.url),
-                "TRACE" => ureq::trace(&request.url),
-                _ => unreachable!(),
-            };
 
-            req = req
-                .config()
-                .timeout_recv_body(request.timeout)
-                .http_status_as_error(false)
-                .build();
+        req = req
+            .config()
+            .timeout_recv_body(request.timeout)
+            .http_status_as_error(false)
+            .build();
 
-            for (k, v) in &request.headers {
-                req = req.header(k, v);
-            }
-
-            if request.body.is_empty() {
-                req.call()
-            } else {
-                req.force_send_body().send(&request.body)
-            }
+        if request.body.is_empty() {
+            req.send_empty()
+        } else {
+            req.send(&request.body)
         }
-        _ => return Err(String::from("Failed to parse request method")),
+    } else {
+        let mut req = match request.method {
+            Method::GET => ureq::get(&request.url),
+            Method::DELETE => ureq::delete(&request.url),
+            Method::CONNECT => ureq::connect(&request.url),
+            Method::HEAD => ureq::head(&request.url),
+            Method::OPTIONS => ureq::options(&request.url),
+            Method::TRACE => ureq::trace(&request.url),
+            // Include all other variants rather than a catch all here to prevent confusion if another variant were to be added
+            Method::PATCH | Method::POST | Method::PUT => unreachable!(),
+        };
+
+        req = req
+            .config()
+            .timeout_recv_body(request.timeout)
+            .http_status_as_error(false)
+            .build();
+
+        for (k, v) in &request.headers {
+            req = req.header(k, v);
+        }
+
+        if request.body.is_empty() {
+            req.call()
+        } else {
+            req.force_send_body().send(&request.body)
+        }
     };
 
     let mut resp = resp.map_err(|err| err.to_string())?;
@@ -104,7 +102,7 @@ pub fn fetch_blocking(request: &Request) -> crate::Result<Response> {
     let mut bytes = vec![];
     use std::io::Read as _;
     if let Err(err) = reader.read_to_end(&mut bytes) {
-        if request.method == "HEAD" && err.kind() == std::io::ErrorKind::UnexpectedEof {
+        if request.method == Method::HEAD && err.kind() == std::io::ErrorKind::UnexpectedEof {
             // We don't really expect a body for HEAD requests, so this is fine.
         } else {
             return Err(format!("Failed to read response body: {err}"));
