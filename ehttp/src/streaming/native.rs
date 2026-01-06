@@ -71,11 +71,24 @@ pub fn fetch_streaming_blocking(
                 break;
             }
             Err(err) => {
-                if request.method == Method::HEAD && err.kind() == std::io::ErrorKind::UnexpectedEof
-                {
-                    // We don't really expect a body for HEAD requests, so this is fine.
-                    on_data(Ok(Part::Chunk(vec![])));
-                    break;
+                if err.kind() == std::io::ErrorKind::Other && request.method == Method::HEAD {
+                    match err.downcast::<ureq::Error>() {
+                        Ok(ureq::Error::Decompress(_, io_err))
+                            if io_err.kind() == std::io::ErrorKind::UnexpectedEof =>
+                        {
+                            // We don't really expect a body for HEAD requests, so this is fine.
+                            on_data(Ok(Part::Chunk(vec![])));
+                            break;
+                        }
+                        Ok(err_inner) => {
+                            on_data(Err(format!("Failed to read response body: {err_inner}")));
+                            return;
+                        }
+                        Err(err) => {
+                            on_data(Err(format!("Failed to read response body: {err}")));
+                            return;
+                        }
+                    }
                 } else {
                     on_data(Err(format!("Failed to read response body: {err}")));
                     return;

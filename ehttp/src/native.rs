@@ -49,8 +49,18 @@ pub fn fetch_blocking(request: &Request) -> crate::Result<Response> {
     let mut bytes = vec![];
     use std::io::Read as _;
     if let Err(err) = reader.read_to_end(&mut bytes) {
-        if request.method == Method::HEAD && err.kind() == std::io::ErrorKind::UnexpectedEof {
-            // We don't really expect a body for HEAD requests, so this is fine.
+        if err.kind() == std::io::ErrorKind::Other && request.method == Method::HEAD {
+            match err.downcast::<ureq::Error>() {
+                Ok(ureq::Error::Decompress(_, io_err))
+                    if io_err.kind() == std::io::ErrorKind::UnexpectedEof =>
+                {
+                    // We don't really expect a body for HEAD requests, so this is fine.
+                }
+                Ok(err_inner) => return Err(format!("Failed to read response body: {err_inner}")),
+                Err(err) => {
+                    return Err(format!("Failed to read response body: {err}"));
+                }
+            }
         } else {
             return Err(format!("Failed to read response body: {err}"));
         }
