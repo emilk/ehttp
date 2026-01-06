@@ -132,7 +132,7 @@ impl From<Mode> for web_sys::RequestMode {
 #[derive(Clone, Debug)]
 pub struct Request {
     /// "GET", "POST", …
-    pub method: String,
+    pub method: Method,
 
     /// https://…
     pub url: String,
@@ -159,7 +159,7 @@ impl Request {
     #[allow(clippy::needless_pass_by_value)]
     pub fn get(url: impl ToString) -> Self {
         Self {
-            method: "GET".to_owned(),
+            method: Method::GET,
             url: url.to_string(),
             body: vec![],
             headers: Headers::new(&[("Accept", "*/*")]),
@@ -172,7 +172,7 @@ impl Request {
     #[allow(clippy::needless_pass_by_value)]
     pub fn head(url: impl ToString) -> Self {
         Self {
-            method: "HEAD".to_owned(),
+            method: Method::HEAD,
             url: url.to_string(),
             body: vec![],
             headers: Headers::new(&[("Accept", "*/*")]),
@@ -185,7 +185,7 @@ impl Request {
     #[allow(clippy::needless_pass_by_value)]
     pub fn post(url: impl ToString, body: Vec<u8>) -> Self {
         Self {
-            method: "POST".to_owned(),
+            method: Method::POST,
             url: url.to_string(),
             body,
             headers: Headers::new(&[
@@ -201,7 +201,7 @@ impl Request {
     #[allow(clippy::needless_pass_by_value)]
     pub fn put(url: impl ToString, body: Vec<u8>) -> Self {
         Self {
-            method: "PUT".to_owned(),
+            method: Method::PUT,
             url: url.to_string(),
             body,
             headers: Headers::new(&[
@@ -216,7 +216,7 @@ impl Request {
     /// Create a 'DELETE' request with the given url.
     pub fn delete(url: &str) -> Self {
         Self {
-            method: "DELETE".to_owned(),
+            method: Method::DELETE,
             url: url.to_string(),
             body: vec![],
             headers: Headers::new(&[("Accept", "*/*")]),
@@ -252,7 +252,7 @@ impl Request {
     pub fn multipart(url: impl ToString, builder: MultipartBuilder) -> Self {
         let (content_type, data) = builder.finish();
         Self {
-            method: "POST".to_string(),
+            method: Method::POST,
             url: url.to_string(),
             body: data,
             headers: Headers::new(&[("Accept", "*/*"), ("Content-Type", content_type.as_str())]),
@@ -269,7 +269,7 @@ impl Request {
         T: ?Sized + Serialize,
     {
         Ok(Self {
-            method: "POST".to_owned(),
+            method: Method::POST,
             url: url.to_string(),
             body: serde_json::to_string(body)?.into_bytes(),
             headers: Headers::new(&[("Accept", "*/*"), ("Content-Type", "application/json")]),
@@ -286,7 +286,7 @@ impl Request {
         T: ?Sized + Serialize,
     {
         Ok(Self {
-            method: "PUT".to_owned(),
+            method: Method::PUT,
             url: url.to_string(),
             body: serde_json::to_string(body)?.into_bytes(),
             headers: Headers::new(&[("Accept", "*/*"), ("Content-Type", "application/json")]),
@@ -298,6 +298,68 @@ impl Request {
     pub fn with_timeout(mut self, timeout: Option<Duration>) -> Self {
         self.timeout = timeout;
         self
+    }
+
+    /// Fetch the ureq response from a page
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn fetch_raw_native(&self, with_timeout: bool) -> Result<ureq::http::Response<ureq::Body>> {
+        if self.method.contains_body() {
+            let mut req = match self.method {
+                Method::POST => ureq::post(&self.url),
+                Method::PATCH => ureq::patch(&self.url),
+                Method::PUT => ureq::put(&self.url),
+                // These three are the only requests which contain a body, no other requests will be matched
+                _ => unreachable!(), // because of the `.contains_body()` call
+            };
+
+            for (k, v) in &self.headers {
+                req = req.header(k, v);
+            }
+
+            req = {
+                if with_timeout {
+                    req.config()
+                } else {
+                    req.config().timeout_recv_body(self.timeout)
+                }
+                .http_status_as_error(false)
+                .build()
+            };
+
+            if self.body.is_empty() {
+                req.send_empty()
+            } else {
+                req.send(&self.body)
+            }
+        } else {
+            let mut req = match self.method {
+                Method::GET => ureq::get(&self.url),
+                Method::DELETE => ureq::delete(&self.url),
+                Method::CONNECT => ureq::connect(&self.url),
+                Method::HEAD => ureq::head(&self.url),
+                Method::OPTIONS => ureq::options(&self.url),
+                Method::TRACE => ureq::trace(&self.url),
+                // Include all other variants rather than a catch all here to prevent confusion if another variant were to be added
+                Method::PATCH | Method::POST | Method::PUT => unreachable!(), // because of the `.contains_body()` call
+            };
+
+            req = req
+                .config()
+                .timeout_recv_body(self.timeout)
+                .http_status_as_error(false)
+                .build();
+
+            for (k, v) in &self.headers {
+                req = req.header(k, v);
+            }
+
+            if self.body.is_empty() {
+                req.call()
+            } else {
+                req.force_send_body().send(&self.body)
+            }
+        }
+        .map_err(|err| err.to_string())
     }
 }
 
@@ -409,3 +471,62 @@ pub type Error = String;
 
 /// A type-alias for `Result<T, ehttp::Error>`.
 pub type Result<T> = std::result::Result<T, Error>;
+
+/// An [HTTP method](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Methods)
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Method {
+    GET,
+    HEAD,
+    POST,
+    PUT,
+    DELETE,
+    CONNECT,
+    OPTIONS,
+    TRACE,
+    PATCH,
+}
+
+impl Method {
+    /// Whether ureq creates a `RequestBuilder<WithBody>` or `RequestBuilder<WithoutBody>`
+    pub fn contains_body(&self) -> bool {
+        use Method::*;
+        match self {
+            // Methods that are created with a body
+            POST | PATCH | PUT => true,
+            // Everything else
+            _ => false,
+        }
+    }
+
+    /// Convert an HTTP method string ("GET", "HEAD") to its enum variant
+    pub fn parse(string: &str) -> Result<Self> {
+        use Method::*;
+        match string {
+            "GET" => Ok(GET),
+            "HEAD" => Ok(HEAD),
+            "POST" => Ok(POST),
+            "PUT" => Ok(PUT),
+            "DELETE" => Ok(DELETE),
+            "CONNECT" => Ok(CONNECT),
+            "OPTIONS" => Ok(OPTIONS),
+            "TRACE" => Ok(TRACE),
+            "PATCH" => Ok(PATCH),
+            _ => Err(Error::from("Failed to parse HTTP method")),
+        }
+    }
+
+    pub fn as_str(&self) -> &'static str {
+        use Method::*;
+        match self {
+            GET => "GET",
+            HEAD => "HEAD",
+            POST => "POST",
+            PUT => "PUT",
+            DELETE => "DELETE",
+            CONNECT => "CONNECT",
+            OPTIONS => "OPTIONS",
+            TRACE => "TRACE",
+            PATCH => "PATCH",
+        }
+    }
+}

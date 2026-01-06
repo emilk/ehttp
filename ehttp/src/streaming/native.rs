@@ -1,6 +1,6 @@
 use std::ops::ControlFlow;
 
-use crate::Request;
+use crate::{Method, Request};
 
 use super::Part;
 use crate::types::PartialResponse;
@@ -9,35 +9,37 @@ pub fn fetch_streaming_blocking(
     request: Request,
     on_data: Box<dyn Fn(crate::Result<Part>) -> ControlFlow<()> + Send>,
 ) {
-    let mut req = ureq::request(&request.method, &request.url);
+    let resp = request.fetch_raw_native(false);
 
-    for (k, v) in &request.headers {
-        req = req.set(k, v);
-    }
-
-    let resp = if request.body.is_empty() {
-        req.call()
-    } else {
-        req.send_bytes(&request.body)
-    };
-
-    let (ok, resp) = match resp {
-        Ok(resp) => (true, resp),
-        Err(ureq::Error::Status(_, resp)) => (false, resp), // Still read the body on e.g. 404
-        Err(ureq::Error::Transport(err)) => {
-            on_data(Err(err.to_string()));
+    let mut resp = match resp {
+        Ok(t) => t,
+        Err(e) => {
+            on_data(Err(e.to_string()));
             return;
         }
     };
 
-    let url = resp.get_url().to_owned();
-    let status = resp.status();
-    let status_text = resp.status_text().to_owned();
+    let ok = resp.status().is_success();
+    use ureq::ResponseExt as _;
+    let url = resp.get_uri().to_string();
+    let status = resp.status().as_u16();
+    let status_text = resp
+        .status()
+        .canonical_reason()
+        .unwrap_or("ERROR")
+        .to_string();
     let mut headers = crate::Headers::default();
-    for key in &resp.headers_names() {
-        if let Some(value) = resp.header(key) {
-            headers.insert(key.to_ascii_lowercase(), value.to_owned());
-        }
+    for (k, v) in resp.headers().iter() {
+        headers.insert(
+            k,
+            match v.to_str() {
+                Ok(t) => t,
+                Err(e) => {
+                    on_data(Err(e.to_string()));
+                    break;
+                }
+            },
+        );
     }
     headers.sort(); // It reads nicer, and matches web backend.
 
@@ -52,9 +54,10 @@ pub fn fetch_streaming_blocking(
         return;
     };
 
-    let mut reader = resp.into_reader();
+    let mut reader = resp.body_mut().as_reader();
     loop {
         let mut buf = vec![0; 2048];
+        use std::io::Read;
         match reader.read(&mut buf) {
             Ok(n) if n > 0 => {
                 // clone data from buffer and clear it
@@ -68,10 +71,24 @@ pub fn fetch_streaming_blocking(
                 break;
             }
             Err(err) => {
-                if request.method == "HEAD" && err.kind() == std::io::ErrorKind::UnexpectedEof {
-                    // We don't really expect a body for HEAD requests, so this is fine.
-                    on_data(Ok(Part::Chunk(vec![])));
-                    break;
+                if err.kind() == std::io::ErrorKind::Other && request.method == Method::HEAD {
+                    match err.downcast::<ureq::Error>() {
+                        Ok(ureq::Error::Decompress(_, io_err))
+                            if io_err.kind() == std::io::ErrorKind::UnexpectedEof =>
+                        {
+                            // We don't really expect a body for HEAD requests, so this is fine.
+                            on_data(Ok(Part::Chunk(vec![])));
+                            break;
+                        }
+                        Ok(err_inner) => {
+                            on_data(Err(format!("Failed to read response body: {err_inner}")));
+                            return;
+                        }
+                        Err(err) => {
+                            on_data(Err(format!("Failed to read response body: {err}")));
+                            return;
+                        }
+                    }
                 } else {
                     on_data(Err(format!("Failed to read response body: {err}")));
                     return;

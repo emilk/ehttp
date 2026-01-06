@@ -1,4 +1,4 @@
-use crate::{Request, Response};
+use crate::{Method, Request, Response};
 
 #[cfg(feature = "native-async")]
 use async_channel::{Receiver, Sender};
@@ -24,45 +24,43 @@ use async_channel::{Receiver, Sender};
 /// * A browser extension blocked the request (e.g. ad blocker)
 /// * …
 pub fn fetch_blocking(request: &Request) -> crate::Result<Response> {
-    let mut req = ureq::request(&request.method, &request.url);
+    let mut resp = request.fetch_raw_native(true)?;
 
-    if let Some(timeout) = request.timeout {
-        req = req.timeout(timeout);
-    }
-
-    for (k, v) in &request.headers {
-        req = req.set(k, v);
-    }
-
-    let resp = if request.body.is_empty() {
-        req.call()
-    } else {
-        req.send_bytes(&request.body)
-    };
-
-    let (ok, resp) = match resp {
-        Ok(resp) => (true, resp),
-        Err(ureq::Error::Status(_, resp)) => (false, resp), // Still read the body on e.g. 404
-        Err(ureq::Error::Transport(err)) => return Err(err.to_string()),
-    };
-
-    let url = resp.get_url().to_owned();
-    let status = resp.status();
-    let status_text = resp.status_text().to_owned();
+    let ok = resp.status().is_success();
+    use ureq::ResponseExt as _;
+    let url = resp.get_uri().to_string();
+    let status = resp.status().as_u16();
+    let status_text = resp
+        .status()
+        .canonical_reason()
+        .unwrap_or("ERROR")
+        .to_string();
     let mut headers = crate::Headers::default();
-    for key in &resp.headers_names() {
-        if let Some(value) = resp.header(key) {
-            headers.insert(key, value.to_owned());
-        }
+    for (k, v) in resp.headers().iter() {
+        headers.insert(
+            k,
+            v.to_str()
+                .map_err(|e| format!("Failed to convert header value to string: {e}"))?,
+        );
     }
     headers.sort(); // It reads nicer, and matches web backend.
 
-    let mut reader = resp.into_reader();
+    let mut reader = resp.body_mut().as_reader();
     let mut bytes = vec![];
     use std::io::Read as _;
     if let Err(err) = reader.read_to_end(&mut bytes) {
-        if request.method == "HEAD" && err.kind() == std::io::ErrorKind::UnexpectedEof {
-            // We don't really expect a body for HEAD requests, so this is fine.
+        if err.kind() == std::io::ErrorKind::Other && request.method == Method::HEAD {
+            match err.downcast::<ureq::Error>() {
+                Ok(ureq::Error::Decompress(_, io_err))
+                    if io_err.kind() == std::io::ErrorKind::UnexpectedEof =>
+                {
+                    // We don't really expect a body for HEAD requests, so this is fine.
+                }
+                Ok(err_inner) => return Err(format!("Failed to read response body: {err_inner}")),
+                Err(err) => {
+                    return Err(format!("Failed to read response body: {err}"));
+                }
+            }
         } else {
             return Err(format!("Failed to read response body: {err}"));
         }
