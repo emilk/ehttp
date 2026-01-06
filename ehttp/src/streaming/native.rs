@@ -69,7 +69,7 @@ pub fn fetch_streaming_blocking(
     let status_text = resp
         .status()
         .canonical_reason()
-        .unwrap_or("Error")
+        .unwrap_or("ERROR")
         .to_string();
     let mut headers = crate::Headers::default();
     for (k, v) in resp.headers().iter() {
