@@ -9,50 +9,7 @@ pub fn fetch_streaming_blocking(
     request: Request,
     on_data: Box<dyn Fn(crate::Result<Part>) -> ControlFlow<()> + Send>,
 ) {
-    let resp = if request.method.contains_body() {
-        let mut req = match request.method {
-            Method::POST => ureq::post(&request.url),
-            Method::PATCH => ureq::patch(&request.url),
-            Method::PUT => ureq::put(&request.url),
-            // These three are the only requests which contain a body, no other requests will be matched
-            _ => unreachable!(), // because of the `.contains_body()` call
-        };
-
-        for (k, v) in &request.headers {
-            req = req.header(k, v);
-        }
-
-        req = req.config().http_status_as_error(false).build();
-
-        if request.body.is_empty() {
-            req.send_empty()
-        } else {
-            req.send(&request.body)
-        }
-    } else {
-        let mut req = match request.method {
-            Method::GET => ureq::get(&request.url),
-            Method::DELETE => ureq::delete(&request.url),
-            Method::CONNECT => ureq::connect(&request.url),
-            Method::HEAD => ureq::head(&request.url),
-            Method::OPTIONS => ureq::options(&request.url),
-            Method::TRACE => ureq::trace(&request.url),
-            // Include all other variants rather than a catch all here to prevent confusion if another variant were to be added
-            Method::PATCH | Method::POST | Method::PUT => unreachable!(), // because of the `.contains_body()` call
-        };
-
-        req = req.config().http_status_as_error(false).build();
-
-        for (k, v) in &request.headers {
-            req = req.header(k, v);
-        }
-
-        if request.body.is_empty() {
-            req.call()
-        } else {
-            req.force_send_body().send(&request.body)
-        }
-    };
+    let resp = request.fetch_raw_native(false);
 
     let mut resp = match resp {
         Ok(t) => t,

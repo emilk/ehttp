@@ -299,6 +299,68 @@ impl Request {
         self.timeout = timeout;
         self
     }
+
+    /// Fetch the ureq response from a page
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn fetch_raw_native(&self, with_timeout: bool) -> Result<ureq::http::Response<ureq::Body>> {
+        if self.method.contains_body() {
+            let mut req = match self.method {
+                Method::POST => ureq::post(&self.url),
+                Method::PATCH => ureq::patch(&self.url),
+                Method::PUT => ureq::put(&self.url),
+                // These three are the only requests which contain a body, no other requests will be matched
+                _ => unreachable!(), // because of the `.contains_body()` call
+            };
+
+            for (k, v) in &self.headers {
+                req = req.header(k, v);
+            }
+
+            req = {
+                if with_timeout {
+                    req.config()
+                } else {
+                    req.config().timeout_recv_body(self.timeout)
+                }
+                .http_status_as_error(false)
+                .build()
+            };
+
+            if self.body.is_empty() {
+                req.send_empty()
+            } else {
+                req.send(&self.body)
+            }
+        } else {
+            let mut req = match self.method {
+                Method::GET => ureq::get(&self.url),
+                Method::DELETE => ureq::delete(&self.url),
+                Method::CONNECT => ureq::connect(&self.url),
+                Method::HEAD => ureq::head(&self.url),
+                Method::OPTIONS => ureq::options(&self.url),
+                Method::TRACE => ureq::trace(&self.url),
+                // Include all other variants rather than a catch all here to prevent confusion if another variant were to be added
+                Method::PATCH | Method::POST | Method::PUT => unreachable!(), // because of the `.contains_body()` call
+            };
+
+            req = req
+                .config()
+                .timeout_recv_body(self.timeout)
+                .http_status_as_error(false)
+                .build();
+
+            for (k, v) in &self.headers {
+                req = req.header(k, v);
+            }
+
+            if self.body.is_empty() {
+                req.call()
+            } else {
+                req.force_send_body().send(&self.body)
+            }
+        }
+        .map_err(|err| err.to_string())
+    }
 }
 
 /// Response from a completed HTTP request.
