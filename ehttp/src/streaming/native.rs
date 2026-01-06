@@ -15,7 +15,7 @@ pub fn fetch_streaming_blocking(
             Method::PATCH => ureq::patch(&request.url),
             Method::PUT => ureq::put(&request.url),
             // These three are the only requests which contain a body, no other requests will be matched
-            _ => unreachable!(),
+            _ => unreachable!(), // because of the `.contains_body()` call
         };
 
         for (k, v) in &request.headers {
@@ -38,7 +38,7 @@ pub fn fetch_streaming_blocking(
             Method::OPTIONS => ureq::options(&request.url),
             Method::TRACE => ureq::trace(&request.url),
             // Include all other variants rather than a catch all here to prevent confusion if another variant were to be added
-            Method::PATCH | Method::POST | Method::PUT => unreachable!(),
+            Method::PATCH | Method::POST | Method::PUT => unreachable!(), // because of the `.contains_body()` call
         };
 
         req = req.config().http_status_as_error(false).build();
