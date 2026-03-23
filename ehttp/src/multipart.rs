@@ -32,10 +32,10 @@ use std::io::{self, Read, Write};
 const BOUNDARY_LEN: usize = 29;
 
 fn random_alphanumeric(len: usize) -> String {
-    rand::thread_rng()
-        .sample_iter(&rand::distributions::Uniform::from(0..=9))
+    rand::rng()
+        .sample_iter(rand::distr::Uniform::new_inclusive(0, 9).unwrap())
         .take(len)
-        .map(|num| num.to_string())
+        .map(|num: i32| num.to_string())
         .collect()
 }
 
