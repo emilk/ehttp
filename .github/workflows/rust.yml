@@ -126,4 +126,4 @@ jobs:
           rust-version: "1.88.0"
           log-level: error
           command: check
-          arguments: --target ${{ matrix.target }}
+          arguments: -p ehttp --all-features
