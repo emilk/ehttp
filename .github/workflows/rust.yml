@@ -126,4 +126,3 @@ jobs:
           rust-version: "1.88.0"
           log-level: error
           command: check
-          arguments: -p ehttp --all-features
