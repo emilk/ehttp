@@ -98,6 +98,7 @@ impl<'h> IntoIterator for &'h Headers {
 /// Determine if cross-origin requests lead to valid responses.
 ///
 /// Based on <https://developer.mozilla.org/en-US/docs/Web/API/Request/mode>
+#[cfg(target_arch = "wasm32")]
 #[derive(Default, Clone, Copy, Debug)]
 pub enum Mode {
     /// If a request is made to another origin with this mode set, the result is an error.
@@ -133,6 +134,7 @@ impl From<Mode> for web_sys::RequestMode {
 /// Determines whether or not the browser sends credentials with the request, as well as whether any Set-Cookie response headers are respected.
 ///
 /// Based on <https://developer.mozilla.org/en-US/docs/Web/API/Request/credentials>
+#[cfg(target_arch = "wasm32")]
 #[derive(Default, Clone, Copy, Debug)]
 pub enum Credentials {
     /// Never send credentials in the request or include credentials in the response.
@@ -327,7 +329,10 @@ impl Request {
             url: url.to_string(),
             body: serde_json::to_string(body)?.into_bytes(),
             headers: Headers::new(&[("Accept", "*/*"), ("Content-Type", "application/json")]),
+            #[cfg(target_arch = "wasm32")]
             mode: Mode::default(),
+            #[cfg(target_arch = "wasm32")]
+            credentials: Credentials::default(),
             timeout: Some(Self::DEFAULT_TIMEOUT),
         })
     }
