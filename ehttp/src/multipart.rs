@@ -25,9 +25,9 @@
 //!
 
 use mime::Mime;
-use rand::Rng;
+use rand::RngExt as _;
 
-use std::io::{self, Read, Write};
+use std::io::{self, Read, Write as _};
 
 const BOUNDARY_LEN: usize = 29;
 
