@@ -51,6 +51,7 @@ pub(crate) async fn fetch_base(request: &Request) -> Result<web_sys::Response, J
     let mut opts = web_sys::RequestInit::new();
     opts.method(request.method.as_str());
     opts.mode(request.mode.into());
+    opts.credentials(request.credentials.into());
 
     if !request.body.is_empty() {
         let body_bytes: &[u8] = &request.body;
