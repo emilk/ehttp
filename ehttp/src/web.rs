@@ -48,16 +48,16 @@ pub(crate) fn string_from_fetch_error(value: JsValue) -> String {
 }
 
 pub(crate) async fn fetch_base(request: &Request) -> Result<web_sys::Response, JsValue> {
-    let mut opts = web_sys::RequestInit::new();
-    opts.method(request.method.as_str());
-    opts.mode(request.mode.into());
-    opts.credentials(request.credentials.into());
+    let opts = web_sys::RequestInit::new();
+    opts.set_method(request.method.as_str());
+    opts.set_mode(request.mode.into());
+    opts.set_credentials(request.credentials.into());
 
     if !request.body.is_empty() {
         let body_bytes: &[u8] = &request.body;
         let body_array: js_sys::Uint8Array = body_bytes.into();
         let js_value: &JsValue = body_array.as_ref();
-        opts.body(Some(js_value));
+        opts.set_body(js_value);
     }
 
     let js_request = web_sys::Request::new_with_str_and_init(&request.url, &opts)?;
