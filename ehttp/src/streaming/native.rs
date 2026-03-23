@@ -14,7 +14,7 @@ pub fn fetch_streaming_blocking(
     let mut resp = match resp {
         Ok(t) => t,
         Err(e) => {
-            on_data(Err(e.to_string()));
+            let _ = on_data(Err(e.to_string()));
             return;
         }
     };
@@ -35,7 +35,7 @@ pub fn fetch_streaming_blocking(
             match v.to_str() {
                 Ok(t) => t,
                 Err(e) => {
-                    on_data(Err(e.to_string()));
+                    let _ = on_data(Err(e.to_string()));
                     break;
                 }
             },
@@ -67,7 +67,7 @@ pub fn fetch_streaming_blocking(
                 };
             }
             Ok(_) => {
-                on_data(Ok(Part::Chunk(vec![])));
+                let _ = on_data(Ok(Part::Chunk(vec![])));
                 break;
             }
             Err(err) => {
@@ -77,20 +77,21 @@ pub fn fetch_streaming_blocking(
                             if io_err.kind() == std::io::ErrorKind::UnexpectedEof =>
                         {
                             // We don't really expect a body for HEAD requests, so this is fine.
-                            on_data(Ok(Part::Chunk(vec![])));
+                            let _ = on_data(Ok(Part::Chunk(vec![])));
                             break;
                         }
                         Ok(err_inner) => {
-                            on_data(Err(format!("Failed to read response body: {err_inner}")));
+                            let _ =
+                                on_data(Err(format!("Failed to read response body: {err_inner}")));
                             return;
                         }
                         Err(err) => {
-                            on_data(Err(format!("Failed to read response body: {err}")));
+                            let _ = on_data(Err(format!("Failed to read response body: {err}")));
                             return;
                         }
                     }
                 } else {
-                    on_data(Err(format!("Failed to read response body: {err}")));
+                    let _ = on_data(Err(format!("Failed to read response body: {err}")));
                     return;
                 }
             }

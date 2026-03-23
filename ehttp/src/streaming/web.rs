@@ -54,7 +54,7 @@ pub(crate) fn fetch_streaming(
         let mut stream = match fetch_jsvalue_stream(&request).await {
             Ok(stream) => stream,
             Err(e) => {
-                on_data(Err(string_from_fetch_error(e)));
+                let _ = on_data(Err(string_from_fetch_error(e)));
                 return;
             }
         };
@@ -67,12 +67,12 @@ pub(crate) fn fetch_streaming(
                     }
                 }
                 Err(e) => {
-                    on_data(Err(string_from_fetch_error(e)));
+                    let _ = on_data(Err(string_from_fetch_error(e)));
                     return;
                 }
             }
         }
 
-        on_data(Ok(Part::Chunk(vec![])));
+        let _ = on_data(Ok(Part::Chunk(vec![])));
     })
 }
