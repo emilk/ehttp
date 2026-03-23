@@ -7,5 +7,5 @@ cd "$script_path/.."
 rustup target add wasm32-unknown-unknown
 
 # For generating JS bindings:
-cargo install --quiet wasm-bindgen-cli --version 0.2.89
+cargo install --quiet wasm-bindgen-cli --version 0.2.89 --locked
 
