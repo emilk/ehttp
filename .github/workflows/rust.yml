@@ -120,5 +120,10 @@ jobs:
   cargo-deny:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
-      - uses: EmbarkStudios/cargo-deny-action@v1
+      - uses: actions/checkout@v4
+      - uses: EmbarkStudios/cargo-deny-action@v2
+        with:
+          rust-version: "1.88.0"
+          log-level: error
+          command: check
+          arguments: --target ${{ matrix.target }}
