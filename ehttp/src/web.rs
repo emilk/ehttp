@@ -42,7 +42,7 @@ pub(crate) fn string_from_fetch_error(value: JsValue) -> String {
             web_sys::console::error_1(&value);
             "Failed to fetch, check the developer console for details".to_owned()
         } else {
-            format!("{:#?}", value)
+            format!("{value:#?}")
         }
     })
 }
