@@ -34,9 +34,6 @@ native-async = ["async-channel"]
 ## Support streaming fetch
 streaming = ["dep:wasm-streams", "dep:futures-util"]
 
-## Support proxy configuration from environment variables on native
-proxy-from-env = ["ureq/proxy-from-env"]
-
 
 [dependencies]
 document-features = "0.2"
