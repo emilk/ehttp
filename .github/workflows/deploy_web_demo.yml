@@ -25,7 +25,7 @@ env:
   # as well as by the wasm32-backend of the wgpu crate.
   # https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Clipboard.html
   # https://rustwasm.github.io/docs/wasm-bindgen/web-sys/unstable-apis.html
-  RUSTFLAGS: --cfg=web_sys_unstable_apis -D warnings
+  RUSTFLAGS: --cfg=web_sys_unstable_apis --cfg getrandom_backend="wasm_js" -D warnings
   RUSTDOCFLAGS: -D warnings
 
 jobs:

@@ -4,6 +4,6 @@ fn main() -> eframe::Result<()> {
     eframe::run_native(
         "ehttp demo",
         Default::default(),
-        Box::new(|_cc| Box::<example_eframe::DemoApp>::default()),
+        Box::new(|_cc| Ok(Box::<example_eframe::DemoApp>::default())),
     )
 }

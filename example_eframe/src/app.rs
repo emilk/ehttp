@@ -280,7 +280,7 @@ fn response_ui(ui: &mut egui::Ui, response: &ehttp::Response) {
         if let Some(text) = response.text() {
             let tooltip = "Click to copy the response body";
             if ui.button("📋").on_hover_text(tooltip).clicked() {
-                ui.output_mut(|o| o.copied_text = text.to_owned());
+                ui.ctx().copy_text(text.to_owned());
             }
             ui.separator();
         }
