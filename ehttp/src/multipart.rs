@@ -53,7 +53,6 @@ impl Default for MultipartBuilder {
     }
 }
 
-#[allow(dead_code)]
 impl MultipartBuilder {
     /// creates a new MultipartBuilder with empty inner
     pub fn new() -> Self {

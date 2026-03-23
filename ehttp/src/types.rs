@@ -194,7 +194,7 @@ impl Request {
     pub const DEFAULT_TIMEOUT: Duration = Duration::from_secs(30);
 
     /// Create a `GET` request with the given url.
-    #[allow(clippy::needless_pass_by_value)]
+    #[expect(clippy::needless_pass_by_value)]
     pub fn get(url: impl ToString) -> Self {
         Self {
             method: Method::GET,
@@ -210,7 +210,7 @@ impl Request {
     }
 
     /// Create a `HEAD` request with the given url.
-    #[allow(clippy::needless_pass_by_value)]
+    #[expect(clippy::needless_pass_by_value)]
     pub fn head(url: impl ToString) -> Self {
         Self {
             method: Method::HEAD,
@@ -226,7 +226,7 @@ impl Request {
     }
 
     /// Create a `POST` request with the given url and body.
-    #[allow(clippy::needless_pass_by_value)]
+    #[expect(clippy::needless_pass_by_value)]
     pub fn post(url: impl ToString, body: Vec<u8>) -> Self {
         Self {
             method: Method::POST,
@@ -245,7 +245,7 @@ impl Request {
     }
 
     /// Create a 'PUT' request with the given url and body.
-    #[allow(clippy::needless_pass_by_value)]
+    #[expect(clippy::needless_pass_by_value)]
     pub fn put(url: impl ToString, body: Vec<u8>) -> Self {
         Self {
             method: Method::PUT,
@@ -319,7 +319,7 @@ impl Request {
 
     #[cfg(feature = "json")]
     /// Create a `POST` request with the given url and json body.
-    #[allow(clippy::needless_pass_by_value)]
+    #[expect(clippy::needless_pass_by_value)]
     pub fn json<T>(url: impl ToString, body: &T) -> serde_json::error::Result<Self>
     where
         T: ?Sized + Serialize,
@@ -339,7 +339,7 @@ impl Request {
 
     #[cfg(feature = "json")]
     /// Create a 'PUT' request with the given url and json body.
-    #[allow(clippy::needless_pass_by_value)]
+    #[expect(clippy::needless_pass_by_value)]
     pub fn put_json<T>(url: impl ToString, body: &T) -> serde_json::error::Result<Self>
     where
         T: ?Sized + Serialize,
