@@ -7,7 +7,7 @@
 //! use std::io::Cursor;
 //! use ehttp::multipart::MultipartBuilder;
 //! let url = "https://www.example.com";
-//! let request = ehttp::Request::multipart(
+//! let request = ehttp::Request::post_multipart(
 //!     url,
 //!     MultipartBuilder::new()
 //!         .add_text("label", "lorem ipsum")
@@ -53,7 +53,6 @@ impl Default for MultipartBuilder {
     }
 }
 
-#[allow(dead_code)]
 impl MultipartBuilder {
     /// creates a new MultipartBuilder with empty inner
     pub fn new() -> Self {
