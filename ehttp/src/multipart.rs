@@ -7,7 +7,7 @@
 //! use std::io::Cursor;
 //! use ehttp::multipart::MultipartBuilder;
 //! let url = "https://www.example.com";
-//! let request = ehttp::Request::multipart(
+//! let request = ehttp::Request::post_multipart(
 //!     url,
 //!     MultipartBuilder::new()
 //!         .add_text("label", "lorem ipsum")

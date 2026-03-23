@@ -287,7 +287,7 @@ impl Request {
     /// use std::io::Cursor;
     /// use ehttp::multipart::MultipartBuilder;
     /// let url = "https://www.example.com";
-    /// let request = ehttp::Request::multipart(
+    /// let request = ehttp::Request::post_multipart(
     ///     url,
     ///     MultipartBuilder::new()
     ///         .add_text("label", "lorem ipsum")
@@ -302,7 +302,7 @@ impl Request {
     /// ehttp::fetch(request, |result| {});
     /// ```
     #[cfg(feature = "multipart")]
-    pub fn multipart(url: impl ToString, builder: MultipartBuilder) -> Self {
+    pub fn post_multipart(url: impl ToString, builder: MultipartBuilder) -> Self {
         let (content_type, data) = builder.finish();
         Self {
             method: Method::POST,
@@ -317,10 +317,16 @@ impl Request {
         }
     }
 
+    #[cfg(feature = "multipart")]
+    #[deprecated(note = "Renamed to `post_multipart`")]
+    pub fn multipart(url: impl ToString, builder: MultipartBuilder) -> Self {
+        Self::post_multipart(url, builder)
+    }
+
     #[cfg(feature = "json")]
     /// Create a `POST` request with the given url and json body.
     #[expect(clippy::needless_pass_by_value)]
-    pub fn json<T>(url: impl ToString, body: &T) -> serde_json::error::Result<Self>
+    pub fn post_json<T>(url: impl ToString, body: &T) -> serde_json::error::Result<Self>
     where
         T: ?Sized + Serialize,
     {
@@ -335,6 +341,15 @@ impl Request {
             credentials: Credentials::default(),
             timeout: Some(Self::DEFAULT_TIMEOUT),
         })
+    }
+
+    #[cfg(feature = "json")]
+    #[deprecated(note = "Renamed to `post_json`")]
+    pub fn json<T>(url: impl ToString, body: &T) -> serde_json::error::Result<Self>
+    where
+        T: ?Sized + Serialize,
+    {
+        Self::post_json(url, body)
     }
 
     #[cfg(feature = "json")]
