@@ -27,6 +27,7 @@
 ///
 /// `Err` can happen for a number of reasons:
 /// * No internet connection
+/// * Connection timed out
 /// * DNS resolution failed
 /// * Firewall or proxy blocked the request
 /// * Server is not reachable
@@ -54,6 +55,7 @@ pub fn fetch(request: Request, on_done: impl 'static + Send + FnOnce(Result<Resp
 ///
 /// `Err` can happen for a number of reasons:
 /// * No internet connection
+/// * Connection timed out
 /// * DNS resolution failed
 /// * Firewall or proxy blocked the request
 /// * Server is not reachable
@@ -73,7 +75,7 @@ pub async fn fetch_async(request: Request) -> Result<Response> {
 }
 
 mod types;
-pub use types::{Error, Headers, PartialResponse, Request, Response, Result};
+pub use types::{Error, Headers, Method, PartialResponse, Request, Response, Result};
 
 #[cfg(target_arch = "wasm32")]
 pub use types::Mode;

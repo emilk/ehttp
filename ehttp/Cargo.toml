@@ -1,10 +1,10 @@
 [package]
 name = "ehttp"
-version = "0.5.0"
+version = "0.6.0"
 authors = ["Emil Ernerfeldt <emil.ernerfeldt@gmail.com>"]
 description = "Minimal HTTP client for both native and WASM"
 edition = "2018"
-rust-version = "1.72"
+rust-version = "1.86"
 homepage = "https://github.com/emilk/ehttp"
 license = "MIT OR Apache-2.0"
 readme = "../README.md"
@@ -50,7 +50,7 @@ serde_json = { version = "1.0", optional = true }
 # For compiling natively:
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 # ureq = { version = "2.0", default-features = false, features = ["gzip", "tls_native_certs"] }
-ureq = "2.0"
+ureq = "3.1"
 async-channel = { version = "2.0", optional = true }
 
 # For compiling to web:
