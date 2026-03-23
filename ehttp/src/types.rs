@@ -75,6 +75,12 @@ impl Headers {
     }
 }
 
+impl<const N: usize> From<&[(&str, &str); N]> for Headers {
+    fn from(headers: &[(&str, &str); N]) -> Self {
+        Self::new(headers.as_slice())
+    }
+}
+
 impl IntoIterator for Headers {
     type Item = (String, String);
     type IntoIter = std::vec::IntoIter<Self::Item>;
@@ -174,6 +180,9 @@ pub struct Request {
     /// ("Accept", "*/*"), …
     pub headers: Headers,
 
+    /// Cancel the request if it doesn't complete fast enough.
+    pub timeout: Option<Duration>,
+
     /// Request mode used on fetch.
     ///
     /// Used on Web to control CORS.
@@ -185,97 +194,67 @@ pub struct Request {
     /// Only applies to the web backend.
     #[cfg(target_arch = "wasm32")]
     pub credentials: Credentials,
-
-    /// Cancel the request if it doesn't complete fast enough.
-    pub timeout: Option<Duration>,
 }
 
 impl Request {
+    /// The default timeout for requests (30 seconds).
     pub const DEFAULT_TIMEOUT: Duration = Duration::from_secs(30);
 
-    /// Create a `GET` request with the given url.
+    /// Create a new request with the given method, url, and headers.
     #[expect(clippy::needless_pass_by_value)]
-    pub fn get(url: impl ToString) -> Self {
+    pub fn new(method: Method, url: impl ToString, headers: impl Into<Headers>) -> Self {
         Self {
-            method: Method::GET,
+            method,
             url: url.to_string(),
             body: vec![],
-            headers: Headers::new(&[("Accept", "*/*")]),
+            headers: headers.into(),
+            timeout: Some(Self::DEFAULT_TIMEOUT),
             #[cfg(target_arch = "wasm32")]
             mode: Mode::default(),
             #[cfg(target_arch = "wasm32")]
             credentials: Credentials::default(),
-            timeout: Some(Self::DEFAULT_TIMEOUT),
         }
+    }
+
+    /// Create a `GET` request with the given url.
+    pub fn get(url: impl ToString) -> Self {
+        Self::new(Method::GET, url, &[("Accept", "*/*")])
     }
 
     /// Create a `HEAD` request with the given url.
-    #[expect(clippy::needless_pass_by_value)]
     pub fn head(url: impl ToString) -> Self {
-        Self {
-            method: Method::HEAD,
-            url: url.to_string(),
-            body: vec![],
-            headers: Headers::new(&[("Accept", "*/*")]),
-            #[cfg(target_arch = "wasm32")]
-            mode: Mode::default(),
-            #[cfg(target_arch = "wasm32")]
-            credentials: Credentials::default(),
-            timeout: Some(Self::DEFAULT_TIMEOUT),
-        }
+        Self::new(Method::HEAD, url, &[("Accept", "*/*")])
     }
 
     /// Create a `POST` request with the given url and body.
-    #[expect(clippy::needless_pass_by_value)]
     pub fn post(url: impl ToString, body: Vec<u8>) -> Self {
-        Self {
-            method: Method::POST,
-            url: url.to_string(),
-            body,
-            headers: Headers::new(&[
+        Self::new(
+            Method::POST,
+            url,
+            &[
                 ("Accept", "*/*"),
                 ("Content-Type", "text/plain; charset=utf-8"),
-            ]),
-            #[cfg(target_arch = "wasm32")]
-            mode: Mode::default(),
-            #[cfg(target_arch = "wasm32")]
-            credentials: Credentials::default(),
-            timeout: Some(Self::DEFAULT_TIMEOUT),
-        }
+            ],
+        )
+        .with_body(body)
     }
 
     /// Create a 'PUT' request with the given url and body.
-    #[expect(clippy::needless_pass_by_value)]
     pub fn put(url: impl ToString, body: Vec<u8>) -> Self {
-        Self {
-            method: Method::PUT,
-            url: url.to_string(),
-            body,
-            headers: Headers::new(&[
+        Self::new(
+            Method::PUT,
+            url,
+            &[
                 ("Accept", "*/*"),
                 ("Content-Type", "text/plain; charset=utf-8"),
-            ]),
-            #[cfg(target_arch = "wasm32")]
-            mode: Mode::default(),
-            #[cfg(target_arch = "wasm32")]
-            credentials: Credentials::default(),
-            timeout: Some(Self::DEFAULT_TIMEOUT),
-        }
+            ],
+        )
+        .with_body(body)
     }
 
     /// Create a 'DELETE' request with the given url.
     pub fn delete(url: &str) -> Self {
-        Self {
-            method: Method::DELETE,
-            url: url.to_string(),
-            body: vec![],
-            headers: Headers::new(&[("Accept", "*/*")]),
-            #[cfg(target_arch = "wasm32")]
-            mode: Mode::default(),
-            #[cfg(target_arch = "wasm32")]
-            credentials: Credentials::default(),
-            timeout: Some(Self::DEFAULT_TIMEOUT),
-        }
+        Self::new(Method::DELETE, url, &[("Accept", "*/*")])
     }
 
     /// Multipart HTTP for both native and WASM.
@@ -304,17 +283,12 @@ impl Request {
     #[cfg(feature = "multipart")]
     pub fn post_multipart(url: impl ToString, builder: MultipartBuilder) -> Self {
         let (content_type, data) = builder.finish();
-        Self {
-            method: Method::POST,
-            url: url.to_string(),
-            body: data,
-            headers: Headers::new(&[("Accept", "*/*"), ("Content-Type", content_type.as_str())]),
-            #[cfg(target_arch = "wasm32")]
-            mode: Mode::default(),
-            #[cfg(target_arch = "wasm32")]
-            credentials: Credentials::default(),
-            timeout: Some(Self::DEFAULT_TIMEOUT),
-        }
+        Self::new(
+            Method::POST,
+            url,
+            Headers::new(&[("Accept", "*/*"), ("Content-Type", content_type.as_str())]),
+        )
+        .with_body(data)
     }
 
     #[cfg(feature = "multipart")]
@@ -325,22 +299,16 @@ impl Request {
 
     #[cfg(feature = "json")]
     /// Create a `POST` request with the given url and json body.
-    #[expect(clippy::needless_pass_by_value)]
     pub fn post_json<T>(url: impl ToString, body: &T) -> serde_json::error::Result<Self>
     where
         T: ?Sized + Serialize,
     {
-        Ok(Self {
-            method: Method::POST,
-            url: url.to_string(),
-            body: serde_json::to_string(body)?.into_bytes(),
-            headers: Headers::new(&[("Accept", "*/*"), ("Content-Type", "application/json")]),
-            #[cfg(target_arch = "wasm32")]
-            mode: Mode::default(),
-            #[cfg(target_arch = "wasm32")]
-            credentials: Credentials::default(),
-            timeout: Some(Self::DEFAULT_TIMEOUT),
-        })
+        Ok(Self::new(
+            Method::POST,
+            url,
+            &[("Accept", "*/*"), ("Content-Type", "application/json")],
+        )
+        .with_body(serde_json::to_string(body)?.into_bytes()))
     }
 
     #[cfg(feature = "json")]
@@ -354,26 +322,65 @@ impl Request {
 
     #[cfg(feature = "json")]
     /// Create a 'PUT' request with the given url and json body.
-    #[expect(clippy::needless_pass_by_value)]
     pub fn put_json<T>(url: impl ToString, body: &T) -> serde_json::error::Result<Self>
     where
         T: ?Sized + Serialize,
     {
-        Ok(Self {
-            method: Method::PUT,
-            url: url.to_string(),
-            body: serde_json::to_string(body)?.into_bytes(),
-            headers: Headers::new(&[("Accept", "*/*"), ("Content-Type", "application/json")]),
-            #[cfg(target_arch = "wasm32")]
-            mode: Mode::default(),
-            #[cfg(target_arch = "wasm32")]
-            credentials: Credentials::default(),
-            timeout: Some(Self::DEFAULT_TIMEOUT),
-        })
+        Ok(Self::new(
+            Method::PUT,
+            url,
+            &[("Accept", "*/*"), ("Content-Type", "application/json")],
+        )
+        .with_body(serde_json::to_string(body)?.into_bytes()))
     }
 
+    /// Set the HTTP method.
+    pub fn with_method(mut self, method: Method) -> Self {
+        self.method = method;
+        self
+    }
+
+    /// Set the URL.
+    pub fn with_url(mut self, url: impl ToString) -> Self {
+        self.url = url.to_string();
+        self
+    }
+
+    /// Set the request body.
+    pub fn with_body(mut self, body: Vec<u8>) -> Self {
+        self.body = body;
+        self
+    }
+
+    /// Replace all headers.
+    pub fn with_headers(mut self, headers: Headers) -> Self {
+        self.headers = headers;
+        self
+    }
+
+    /// Append a single header to the request.
+    pub fn with_header(mut self, key: impl ToString, value: impl ToString) -> Self {
+        self.headers.insert(key, value);
+        self
+    }
+
+    /// Set the request timeout, or `None` to disable it.
     pub fn with_timeout(mut self, timeout: Option<Duration>) -> Self {
         self.timeout = timeout;
+        self
+    }
+
+    /// Set the request mode (controls CORS behavior on web).
+    #[cfg(target_arch = "wasm32")]
+    pub fn with_mode(mut self, mode: Mode) -> Self {
+        self.mode = mode;
+        self
+    }
+
+    /// Set whether credentials are sent with the request (web only).
+    #[cfg(target_arch = "wasm32")]
+    pub fn with_credentials(mut self, credentials: Credentials) -> Self {
+        self.credentials = credentials;
         self
     }
 
