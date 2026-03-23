@@ -6,6 +6,13 @@ All notable changes to the `ehttp` crate will be documented in this file.
 ## Unreleased
 
 
+## 0.7.0 - 2026-03-23
+* Add builder methods to `Request` ([#77](https://github.com/emilk/ehttp/pull/77))
+* Add `Request::with_credentials` for web ([#62](https://github.com/emilk/ehttp/pull/62))
+* Update to `ureq` 3 ([#76](https://github.com/emilk/ehttp/pull/76))
+* Update MSRV to 1.88 ([#78](https://github.com/emilk/ehttp/pull/78))
+
+
 ## 0.6.0 - 2025-12-05
 * Support configurable timeouts ([#71](https://github.com/emilk/ehttp/pull/71))
 * Add Node.js support ([#58](https://github.com/emilk/ehttp/pull/58))
