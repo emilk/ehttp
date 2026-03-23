@@ -78,9 +78,9 @@ mod types;
 pub use types::{Error, Headers, Method, PartialResponse, Request, Response, Result};
 
 #[cfg(target_arch = "wasm32")]
-pub use types::Mode;
-#[cfg(target_arch = "wasm32")]
 pub use types::Credentials;
+#[cfg(target_arch = "wasm32")]
+pub use types::Mode;
 
 #[cfg(not(target_arch = "wasm32"))]
 mod native;

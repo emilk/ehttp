@@ -183,7 +183,7 @@ pub struct Request {
     /// Only applies to the web backend.
     #[cfg(target_arch = "wasm32")]
     pub credentials: Credentials,
-  
+
     /// Cancel the request if it doesn't complete fast enough.
     pub timeout: Option<Duration>,
 }
