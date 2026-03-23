@@ -6,6 +6,10 @@ All notable changes to the `ehttp` crate will be documented in this file.
 ## Unreleased
 
 
+## 0.7.1 - 2026-03-23
+* Relax version requirements on `wasm-bindgen`, `js-sys`, `web-sys`, and `wasm-streams`
+
+
 ## 0.7.0 - 2026-03-23
 * Add builder methods to `Request` ([#77](https://github.com/emilk/ehttp/pull/77))
 * Add `Request::with_credentials` for web ([#62](https://github.com/emilk/ehttp/pull/62))
