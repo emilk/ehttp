@@ -1,4 +1,20 @@
+use std::time::Duration;
+
 use crate::types::PartialResponse;
+
+/// Flow control for streaming responses with back-pressure support.
+pub enum Flow {
+    /// Continue processing immediately.
+    Continue,
+
+    /// Stop processing permanently.
+    Break,
+
+    /// Pause processing for the specified duration.
+    ///
+    /// You can use this to apply back-pressure.
+    Wait(Duration),
+}
 
 /// A piece streamed by [`crate::streaming::fetch`].
 pub enum Part {
