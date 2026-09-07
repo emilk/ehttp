@@ -1,4 +1,4 @@
-use std::{io::Read, thread};
+use std::thread;
 
 use crate::{Method, Request};
 
