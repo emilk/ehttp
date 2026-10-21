@@ -28,7 +28,12 @@ all-features = true
 
 [advisories]
 version = 2
-ignore = []
+ignore = [
+  { id = "RUSTSEC-2026-0192", reason = "ttf-parser is unmaintained; only used by example_eframe (via eframe)" },
+  { id = "RUSTSEC-2026-0370", reason = "zvariant is unmaintained; only used by example_eframe (via accesskit)" },
+  { id = "RUSTSEC-2026-0371", reason = "zbus_names is unmaintained; only used by example_eframe (via accesskit)" },
+  { id = "RUSTSEC-2026-0372", reason = "zvariant_derive is unmaintained; only used by example_eframe (via accesskit)" },
+]
 
 
 [bans]
