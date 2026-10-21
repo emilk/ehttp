@@ -1,6 +1,6 @@
 use std::{
-    ops::ControlFlow,
     sync::{Arc, Mutex},
+    time::Duration,
 };
 
 use eframe::egui;
@@ -106,11 +106,11 @@ impl eframe::App for DemoApp {
 fn on_fetch_part(
     part: Result<ehttp::streaming::Part, String>,
     download_store: &mut Download,
-) -> ControlFlow<()> {
+) -> ehttp::streaming::Flow {
     let part = match part {
         Err(err) => {
             *download_store = Download::Done(Result::Err(err));
-            return ControlFlow::Break(());
+            return ehttp::streaming::Flow::Break;
         }
         Ok(part) => part,
     };
@@ -121,7 +121,7 @@ fn on_fetch_part(
                 response,
                 body: Vec::new(),
             };
-            ControlFlow::Continue(())
+            ehttp::streaming::Flow::Continue
         }
         ehttp::streaming::Part::Chunk(chunk) => {
             if let Download::StreamingInProgress { response, mut body } =
@@ -132,14 +132,19 @@ fn on_fetch_part(
                 if chunk.is_empty() {
                     // This was the last chunk.
                     *download_store = Download::Done(Ok(response.complete(body)));
-                    ControlFlow::Break(())
+                    ehttp::streaming::Flow::Break
                 } else {
-                    // More to come.
+                    // More to come - demonstrate back-pressure by adding a small delay for large chunks
                     *download_store = Download::StreamingInProgress { response, body };
-                    ControlFlow::Continue(())
+                    if chunk.len() > 8192 {
+                        // Wait a bit for large chunks to demonstrate back-pressure
+                        ehttp::streaming::Flow::Wait(Duration::from_millis(10))
+                    } else {
+                        ehttp::streaming::Flow::Continue
+                    }
                 }
             } else {
-                ControlFlow::Break(()) // some data race - abort download.
+                ehttp::streaming::Flow::Break // some data race - abort download.
             }
         }
     }
