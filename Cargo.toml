@@ -1,5 +1,27 @@
 [workspace]
+resolver = "3"
 members = [
     "ehttp",
     "example_eframe",
 ]
+
+
+[workspace.dependencies]
+async-channel = "2.5"
+document-features = "0.2.12"
+eframe = "0.33.3" # 0.34+ requires Rust 1.92
+env_logger = "0.11.11"
+futures-util = "0.3.34"
+getrandom = "0.4.3"
+js-sys = "0.3.85" # Keep the wasm-bindgen family pins low, so users can choose their own version
+log = "0.4.34"
+mime = "0.3.17"
+mime_guess = "2.0"
+rand = "0.10.3"
+serde = "1.0"
+serde_json = "1.0"
+ureq = "3.4"
+wasm-bindgen = "0.2.108" # Keep low, see js-sys
+wasm-bindgen-futures = "0.4.45" # Keep low, see js-sys
+wasm-streams = "0.4.2" # Keep low, see js-sys
+web-sys = "0.3.85" # Keep low, see js-sys

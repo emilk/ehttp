@@ -6,21 +6,22 @@ description = "Demo of ehttp for both web and native using eframe"
 edition = "2018"
 license = "MIT OR Apache-2.0"
 publish = false
+rust-version = "1.88"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 ehttp = { path = "../ehttp", features = ["streaming"] }
-eframe = "0.33.3"
-log = "0.4.29"
+eframe = { workspace = true }
+log = { workspace = true }
 
 # native:
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-env_logger = "0.11.4"
+env_logger = { workspace = true }
 
 # web:
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-getrandom = { version = "0.3.4", features = ["wasm_js"] }
-wasm-bindgen-futures = "0.4.45"
-web-sys = { version = "0.3.85", features = ["HtmlCanvasElement"] }
+getrandom = { version = "0.3.4", features = ["wasm_js"] } # Enables `wasm_js` on the getrandom 0.3 that eframe uses (the workspace uses 0.4)
+wasm-bindgen-futures = { workspace = true }
+web-sys = { workspace = true, features = ["HtmlCanvasElement"] }
