@@ -6,6 +6,7 @@ description = "Demo of ehttp for both web and native using eframe"
 edition = "2018"
 license = "MIT OR Apache-2.0"
 publish = false
+rust-version = "1.88"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
