@@ -31,6 +31,10 @@ multipart = ["dep:getrandom", "dep:mime", "dep:mime_guess", "dep:rand"]
 ## Support `fetch_async` on native
 native-async = ["async-channel"]
 
+## Verify TLS certificates using the OS certificate store (via `rustls-platform-verifier`)
+## instead of the bundled `webpki-roots`. Native only.
+platform-verifier = ["ureq/platform-verifier"]
+
 ## Support streaming fetch
 streaming = ["dep:wasm-streams", "dep:futures-util"]
 

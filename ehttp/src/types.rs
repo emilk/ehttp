@@ -407,6 +407,7 @@ impl Request {
                     req.config().timeout_recv_body(self.timeout)
                 }
                 .http_status_as_error(false)
+                .tls_config(tls_config())
                 .build()
             };
 
@@ -431,6 +432,7 @@ impl Request {
                 .config()
                 .timeout_recv_body(self.timeout)
                 .http_status_as_error(false)
+                .tls_config(tls_config())
                 .build();
 
             for (k, v) in &self.headers {
@@ -445,6 +447,15 @@ impl Request {
         }
         .map_err(|err| err.to_string())
     }
+}
+
+/// TLS config for native requests, honoring the `platform-verifier` feature.
+#[cfg(not(target_arch = "wasm32"))]
+fn tls_config() -> ureq::tls::TlsConfig {
+    let builder = ureq::tls::TlsConfig::builder();
+    #[cfg(feature = "platform-verifier")]
+    let builder = builder.root_certs(ureq::tls::RootCerts::PlatformVerifier);
+    builder.build()
 }
 
 /// Response from a completed HTTP request.
