@@ -4,6 +4,7 @@ All notable changes to the `ehttp` crate will be documented in this file.
 
 
 ## Unreleased
+* Add `platform-verifier` feature to verify TLS certificates using the OS certificate store
 
 
 ## 0.7.1 - 2026-03-23
