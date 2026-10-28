@@ -41,3 +41,11 @@ fn decodes_gzip_without_a_tls_provider() {
     assert_eq!(response.status, 200);
     assert_eq!(response.bytes, b"hello");
 }
+
+#[cfg(not(feature = "rustls-ring"))]
+#[test]
+fn https_without_a_tls_provider_is_an_error() {
+    let result = ehttp::fetch_blocking(&ehttp::Request::get("HTTPS://127.0.0.1:1"));
+    let err = result.err().unwrap_or_default();
+    assert!(err.contains("CryptoProvider"), "{}", err);
+}

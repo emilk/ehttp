@@ -59,6 +59,7 @@ serde_json = { workspace = true, optional = true }
 # For compiling natively:
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 ureq = { workspace = true }
+rustls = { workspace = true }
 async-channel = { workspace = true, optional = true }
 
 # For compiling to web:

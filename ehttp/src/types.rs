@@ -387,6 +387,17 @@ impl Request {
     /// Fetch the ureq response from a page
     #[cfg(not(target_arch = "wasm32"))]
     pub fn fetch_raw_native(&self, with_timeout: bool) -> Result<ureq::http::Response<ureq::Body>> {
+        #[cfg(not(feature = "rustls-ring"))]
+        if is_https(&self.url) && rustls::crypto::CryptoProvider::get_default().is_none() {
+            // ureq would panic, so we return an error instead.
+            return Err(
+                "No rustls CryptoProvider installed. Either enable the `rustls-ring` \
+                feature of ehttp, or call `CryptoProvider::install_default` before making \
+                HTTPS requests."
+                    .to_owned(),
+            );
+        }
+
         if self.method.contains_body() {
             let mut req = match self.method {
                 Method::POST => ureq::post(&self.url),
@@ -447,6 +458,12 @@ impl Request {
         }
         .map_err(|err| err.to_string())
     }
+}
+
+#[cfg(all(not(target_arch = "wasm32"), not(feature = "rustls-ring")))]
+fn is_https(url: &str) -> bool {
+    url.get(..8)
+        .is_some_and(|scheme| scheme.eq_ignore_ascii_case("https://"))
 }
 
 /// TLS config for native requests, honoring the `platform-verifier` feature.
