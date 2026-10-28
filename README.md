@@ -29,3 +29,22 @@ You can communicate the results back to the main thread using something like:
 * [`tokio::sync::watch::channel`](https://docs.rs/tokio/latest/tokio/sync/watch/fn.channel.html)
 
 There is also a streaming version under `ehttp::fetch::streaming`, hidden behind the `streaming` feature flag.
+
+## Native TLS provider
+
+Native HTTPS requests use Rustls with `ring` by default.
+To use another Rustls crypto provider, disable ehttp's default features and install your provider before making the first HTTPS request:
+
+```toml
+ehttp = { version = "0.7.2", default-features = false }
+rustls = { version = "0.23", default-features = false, features = ["aws-lc-rs", "std"] }
+```
+
+```rust
+rustls::crypto::aws_lc_rs::default_provider()
+    .install_default()
+    .expect("install the crypto provider before making HTTPS requests");
+```
+
+Certificate verification and gzip support remain enabled without default features.
+This setting only affects native builds; WebAssembly uses the browser's TLS implementation.

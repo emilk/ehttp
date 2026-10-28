@@ -20,7 +20,12 @@ all-features = true
 
 
 [features]
-default = []
+default = ["tls-ring"]
+
+## Use `ring` for native TLS (enabled by default).
+## Disable default features to use a custom Rustls crypto provider instead.
+## Install that provider before making the first HTTPS request. Has no effect on WebAssembly.
+tls-ring = ["ureq/rustls"]
 
 ## Support json fetch
 json = ["dep:serde", "dep:serde_json"]

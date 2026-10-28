@@ -44,8 +44,14 @@ jobs:
           args: --lib --target wasm32-unknown-unknown --all-features
 
   test:
-    name: cargo test
+    name: cargo test (${{ matrix.features }})
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        features:
+          - --all-features
+          - --no-default-features
+          - --no-default-features --features json,multipart,native-async,platform-verifier,streaming
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
@@ -56,7 +62,15 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --all-features -p ehttp
+          args: -p ehttp ${{ matrix.features }}
+      - name: Check provider-free dependency tree
+        if: matrix.features != '--all-features'
+        run: |
+          cargo tree -p ehttp ${{ matrix.features }} --edges normal --prefix none --color never > dependencies.txt
+          if grep -E '^ring v' dependencies.txt; then
+            echo "ring must remain optional"
+            exit 1
+          fi
 
   fmt:
     name: cargo fmt
