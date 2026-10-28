@@ -24,7 +24,9 @@ default = ["rustls-ring"]
 
 ## Use `ring` for native TLS (enabled by default).
 ## Disable default features to use a custom Rustls crypto provider instead.
-## Install that provider before making the first HTTPS request. Has no effect on WebAssembly.
+## Install that provider before making the first HTTPS request, using
+## [`CryptoProvider::install_default`](https://docs.rs/rustls/0.23/rustls/crypto/struct.CryptoProvider.html#method.install_default).
+## Has no effect on WebAssembly.
 rustls-ring = ["ureq/rustls"]
 
 ## Support json fetch
