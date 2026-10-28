@@ -20,7 +20,14 @@ all-features = true
 
 
 [features]
-default = []
+default = ["rustls-ring"]
+
+## Use `ring` for native TLS (enabled by default).
+## Disable default features to use a custom Rustls crypto provider instead.
+## Install that provider before making the first HTTPS request, using
+## [`CryptoProvider::install_default`](https://docs.rs/rustls/0.23/rustls/crypto/struct.CryptoProvider.html#method.install_default).
+## Has no effect on WebAssembly.
+rustls-ring = ["ureq/rustls"]
 
 ## Support json fetch
 json = ["dep:serde", "dep:serde_json"]
@@ -54,6 +61,7 @@ serde_json = { workspace = true, optional = true }
 # For compiling natively:
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 ureq = { workspace = true }
+rustls = { workspace = true }
 async-channel = { workspace = true, optional = true }
 
 # For compiling to web:

@@ -1017,6 +1017,7 @@ dependencies = [
  "mime",
  "mime_guess",
  "rand",
+ "rustls",
  "serde",
  "serde_json",
  "ureq",
