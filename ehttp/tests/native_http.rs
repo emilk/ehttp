@@ -1,11 +1,11 @@
 #![cfg(not(target_arch = "wasm32"))]
 
-use std::io::{Read as _, Write as _};
+use std::io::{BufRead as _, BufReader, Write as _};
 use std::net::TcpListener;
 use std::time::Duration;
 
 #[test]
-fn decodes_gzip_without_a_tls_provider() {
+fn decodes_gzip() {
     let listener = TcpListener::bind("127.0.0.1:0").unwrap();
     let address = listener.local_addr().unwrap();
     let server = std::thread::spawn(move || {
@@ -13,11 +13,11 @@ fn decodes_gzip_without_a_tls_provider() {
         stream
             .set_read_timeout(Some(Duration::from_secs(5)))
             .unwrap();
-        let mut request = Vec::new();
-        while !request.ends_with(b"\r\n\r\n") {
-            let mut byte = [0];
-            stream.read_exact(&mut byte).unwrap();
-            request.push(byte[0]);
+        let mut reader = BufReader::new(&stream);
+        let mut line = String::new();
+        while line != "\r\n" {
+            line.clear();
+            reader.read_line(&mut line).unwrap();
         }
 
         // A gzip-compressed "hello" checks that disabling Ureq's default features
