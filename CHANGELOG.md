@@ -6,6 +6,10 @@ All notable changes to the `ehttp` crate will be documented in this file.
 ## Unreleased
 
 
+## 0.7.3 - 2026-11-03
+* Support `wasm-streams` 0.4 through 0.7 ([#87](https://github.com/emilk/ehttp/pull/87))
+
+
 ## 0.7.2 - 2026-10-21
 * Add `platform-verifier` feature to verify TLS certificates using the OS certificate store ([#84](https://github.com/emilk/ehttp/pull/84))
 * Update dependencies ([#85](https://github.com/emilk/ehttp/pull/85))
