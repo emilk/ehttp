@@ -25,7 +25,7 @@ enum Download {
 pub struct DemoApp {
     url: String,
     method: Method,
-    request_body: String,
+    request_body: (bool, String),
     streaming: bool,
     download: Arc<Mutex<Download>>,
 }
@@ -35,7 +35,7 @@ impl Default for DemoApp {
         Self {
             url: "https://raw.githubusercontent.com/emilk/ehttp/master/README.md".to_owned(),
             method: Method::Get,
-            request_body: r#"["posting some json"]"#.to_owned(),
+            request_body: (true, r#"["posting some json"]"#.to_owned()),
             streaming: true,
             download: Arc::new(Mutex::new(Download::None)),
         }
@@ -52,7 +52,18 @@ impl eframe::App for DemoApp {
                     Method::Get => ehttp::Request::get(&self.url),
                     Method::Head => ehttp::Request::head(&self.url),
                     Method::Post => {
-                        ehttp::Request::post(&self.url, self.request_body.as_bytes().to_vec())
+                        let (is_json, body) = &self.request_body;
+                        if *is_json {
+                            ehttp::Request {
+                                headers: ehttp::Headers::new(&[
+                                    ("Accept", "*/*"),
+                                    ("Content-Type", "application/json; charset=utf-8"),
+                                ]),
+                                ..ehttp::Request::post(&self.url, body.as_bytes().to_vec())
+                            }
+                        } else {
+                            ehttp::Request::post(&self.url, body.as_bytes().to_vec())
+                        }
                     }
                 };
                 let download_store = self.download.clone();
@@ -171,11 +182,14 @@ impl DemoApp {
 
                 if self.method == Method::Post {
                     ui.label("POST Body:");
-                    ui.add(
-                        egui::TextEdit::multiline(&mut self.request_body)
-                            .code_editor()
-                            .desired_rows(1),
-                    );
+                    ui.vertical(|ui| {
+                        ui.checkbox(&mut self.request_body.0, "Is JSON");
+                        ui.add(
+                            egui::TextEdit::multiline(&mut self.request_body.1)
+                                .code_editor()
+                                .desired_rows(1),
+                        );
+                    });
                     ui.end_row();
                 }
 
